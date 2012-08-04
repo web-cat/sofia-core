@@ -80,15 +80,12 @@ public class JarResources
 	    Context context, Class<?> klass, String name)
 	{
 	    // First, try for a resource by this name:
-	    if (klass != null)
+	    int id = context.getResources().getIdentifier(
+	        name, "drawable", context.getPackageName());
+	    if (id != 0)
 	    {
-	        int id = context.getResources().getIdentifier(
-	            name, "drawable", context.getPackageName());
-	        if (id != 0)
-	        {
-	            return BitmapFactory.decodeResource(
-	                context.getResources(), id);
-	        }
+	        return BitmapFactory.decodeResource(
+	            context.getResources(), id);
 	    }
 
 	    // If no resource was found ...
