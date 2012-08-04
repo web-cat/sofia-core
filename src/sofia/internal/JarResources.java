@@ -3,6 +3,8 @@ package sofia.internal;
 import java.io.InputStream;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.DisplayMetrics;
 
 /**
@@ -18,36 +20,80 @@ import android.util.DisplayMetrics;
  *
  * @author Tony Allevato
  * @author  Last changed by $Author: edwards $
- * @version $Date: 2012/08/03 21:12 $
+ * @version $Date: 2012/08/04 15:52 $
  */
 public class JarResources
 {
 	//~ Methods ...............................................................
 
-	// ----------------------------------------------------------
+    // ----------------------------------------------------------
+    /**
+     * Get an image resource by name, taking the current device's DPI into
+     * account.  The image may be a traditional Android resource, in which
+     * case the normal resource mechanism is used to look it up, or it may
+     * be stored in the application/context package.  If stored in the
+     * application's package, the package should have a subpackage named
+     * "images", with one or more of its own subpackages that match the DPI
+     * identifiers used in resources: "ldpi", "mdpi", "hdpi", and/or "xhdpi".
+     * Image files are held in these dpi-based subpackages.  The "images"
+     * subpackage itself will also be searched, with images it contains
+     * treated at the same DPI as the device.
+     *
+     * @param context The context for determining the display resolution,
+     *                and also the application's package.
+     * @param name    The name of the image file, including its extension.
+     * @return A {@code Bitmap} containing the image, or null if no
+     *     image could be found.
+     */
+    public static Bitmap getBitmap(Context context, String name)
+    {
+        return getBitmap(context, null, name);
+    }
+
+
+    // ----------------------------------------------------------
 	/**
-	 * Gets an input stream for an image resource, stored in a package
-	 * relative to the specified class, and taking the current device's DPI
-	 * into account. The package containing the class parameter should have a
-	 * subpackage named "images", with its own subpackages that match the DPI
-	 * identifiers used in resources, like "hdpi" and "mdpi", inside which the
-	 * image files are held.
+     * Get an image resource by name, taking the current device's DPI into
+     * account.  The image may be a traditional Android resource, in which
+     * case the normal resource mechanism is used to look it up, or it may
+     * be stored in the application/context package.  If stored in a package
+     * relative to the specified class (or application). The package
+	 * containing the class parameter should have a subpackage named "images",
+	 * with one or more of its own subpackages that match the DPI identifiers
+	 * used in resources: "ldpi", "mdpi", "hdpi", and/or "xhdpi". Image files
+	 * are held in these dpi-based subpackages.  The "images" subpackage
+	 * itself will also be searched, with images it contains treated at the
+	 * same DPI as the device.
 	 *
 	 * @param context The context for determining the display resolution,
 	 *                and also the application's package, if the image isn't
-	 *                found in the klass' package.
+	 *                found in package of the specified klass.
 	 * @param klass   The class representing the package where the images are
 	 *                located.  The search will also look in the application
 	 *                package determined by the context if no image is found
-	 *                with respect to the klass' package (or if klass is null).
+	 *                with respect to klass' package (or if klass is null).
 	 * @param name    The name of the image file, including its extension.
-	 * @return An {@code InputStream} containing the image data, or null if no
+	 * @return An {@code Bitmap} containing the image, or null if no
 	 *     image could be found.
 	 */
-	public static InputStream getImageStream(
+	public static Bitmap getBitmap(
 	    Context context, Class<?> klass, String name)
 	{
+	    // First, try for a resource by this name:
+	    if (klass != null)
+	    {
+	        int id = context.getResources().getIdentifier(
+	            name, "drawable", context.getPackageName());
+	        if (id != 0)
+	        {
+	            return BitmapFactory.decodeResource(
+	                context.getResources(), id);
+	        }
+	    }
+
+	    // If no resource was found ...
 		DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+		int foundDensity = -1;
 
 		// Pattern is declared outside the loop because it is intended to
 		// be used after the loop
@@ -64,54 +110,96 @@ public class JarResources
 		// defaults to the xhdpi pattern.
 
 		// First, try to find image using the package of the given class
-		InputStream result = null;
+		InputStream stream = null;
 		if (klass != null)
 		{
-    		for (String attempt : SEARCH_PATTERN[pattern])
+    		for (int attempt : SEARCH_PATTERN[pattern])
     		{
-    			result = klass.getResourceAsStream(
-    			    "images/" + attempt + "/" + name);
+    			stream = klass.getResourceAsStream(
+    			    "images/" + DENSITY_NAME[attempt] + "/" + name);
 
-    			if (result != null)
+    			if (stream != null)
     			{
-    				return result;
+    			    foundDensity = attempt;
+    			    break;
     			}
     		}
 
-    		// If we make it here, try for the default (no density) name
-    		result = klass.getResourceAsStream("images/" + name);
-    		if (result != null)
+    		if (stream == null)
     		{
-    		    return result;
+    		    // If we make it here, try for the default (no density) name
+    		    stream = klass.getResourceAsStream("images/" + name);
     		}
 		}
 
-		// OK, now search using the app/context package instead of
-		// klass' package
-		String base = context.getPackageName().replace('.', '/');
-		if (!base.endsWith("/"))
+		if (stream == null)
 		{
-		    base += "/";
-		}
-		base += "images/";
-		ClassLoader loader = (klass == null)
-		    ? JarResources.class.getClassLoader()
-		    : klass.getClass().getClassLoader();
-        for (String attempt : SEARCH_PATTERN[pattern])
-        {
-            result = loader.getResourceAsStream(base + attempt + "/" + name);
+		    // OK, now search using the app/context package instead of
+		    // klass' package
+		    String base = context.getPackageName().replace('.', '/');
+		    if (!base.endsWith("/"))
+		    {
+		        base += "/";
+		    }
+		    base += "images/";
+		    ClassLoader loader = (klass == null)
+		        ? JarResources.class.getClassLoader()
+		        : klass.getClass().getClassLoader();
+		    for (int attempt : SEARCH_PATTERN[pattern])
+		    {
+		        stream = loader.getResourceAsStream(
+		            base + DENSITY_NAME[attempt] + "/" + name);
 
-            if (result != null)
-            {
-                return result;
+		        if (stream != null)
+		        {
+		            foundDensity = attempt;
+		            break;
+		        }
             }
+
+		    if (stream == null)
+		    {
+		        // If we make it here, try for the default (no density) name
+		        stream = loader.getResourceAsStream(base + name);
+		    }
         }
-        // If we make it here, try for the default (no density) name
-        return loader.getResourceAsStream(base + name);
+
+		Bitmap result = null;
+		if (stream != null)
+		{
+		    result = BitmapFactory.decodeStream(stream);
+		    if (foundDensity >= 0)
+		    {
+		        result.setDensity(DENSITY[foundDensity]);
+		    }
+		}
+		return result;
 	}
 
 
-	// See http://developer.android.com/guide/practices/screens_support.html
+	// Map from ints 0-3 to corresponding density names here
+    private static final String[] DENSITY_NAME = {
+        "ldpi",
+        "mdpi",
+        "hdpi",
+        "xhdpi"
+    };
+
+    // constants for the int codes
+    private static final int LDPI  = 0;
+    private static final int MDPI  = 1;
+    private static final int HDPI  = 2;
+    private static final int XHDPI = 3;
+
+    // DPI density for each name
+    private static final int[] DENSITY = {
+        120,
+        160,
+        240,
+        320
+    };
+
+    // See http://developer.android.com/guide/practices/screens_support.html
 	// Values based on info in Table 1 on that page.
 	private static final int[] CUTOFF = {
 	    140,    // upper limit for ldpi, which is ~120dpi
@@ -124,10 +212,10 @@ public class JarResources
 	// Search starts with the preferred resolution, and then goes high-to-low
 	// on the assumption that higher res images scale down better than
 	// attempting to scale up lower res images.
-	private static final String[][] SEARCH_PATTERN = {
-	    { "ldpi", "xhdpi", "hdpi", "mdpi" },  // for ldpi screens
-        { "mdpi", "xhdpi", "hdpi", "ldpi" },  // for mdpi screens
-        { "hdpi", "xhdpi", "mdpi", "ldpi" },  // for hdpi screens
-        { "xhdpi", "hdpi", "mdpi", "ldpi" }   // for xhdpi screens
+	private static final int[][] SEARCH_PATTERN = {
+	    { LDPI, XHDPI, HDPI, MDPI },  // for ldpi screens
+        { MDPI, XHDPI, HDPI, LDPI },  // for mdpi screens
+        { HDPI, XHDPI, MDPI, LDPI },  // for hdpi screens
+        { XHDPI, HDPI, MDPI, LDPI }   // for xhdpi screens
 	};
 }
