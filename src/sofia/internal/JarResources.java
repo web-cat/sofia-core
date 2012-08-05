@@ -56,14 +56,14 @@ public class JarResources
      * Get an image resource by name, taking the current device's DPI into
      * account.  The image may be a traditional Android resource, in which
      * case the normal resource mechanism is used to look it up, or it may
-     * be stored in the application/context package.  If stored in a package
-     * relative to the specified class (or application). The package
-	 * containing the class parameter should have a subpackage named "images",
-	 * with one or more of its own subpackages that match the DPI identifiers
-	 * used in resources: "ldpi", "mdpi", "hdpi", and/or "xhdpi". Image files
-	 * are held in these dpi-based subpackages.  The "images" subpackage
-	 * itself will also be searched, with images it contains treated at the
-	 * same DPI as the device.
+     * be stored in the application/context package.  Alternatively, the
+     * image may be stored in a package relative to the specified class
+     * (or application). The package containing the class parameter should
+     * have a subpackage named "images", with one or more of its own
+     * subpackages that match the DPI identifiers used in resources:
+     * "ldpi", "mdpi", "hdpi", and/or "xhdpi". Image files are held in these
+     * dpi-based subpackages.  The "images" subpackage itself will also be
+     * searched, with images it contains treated at the same DPI as the device.
 	 *
 	 * @param context The context for determining the display resolution,
 	 *                and also the application's package, if the image isn't
@@ -79,13 +79,72 @@ public class JarResources
 	public static Bitmap getBitmap(
 	    Context context, Class<?> klass, String name)
 	{
-	    // First, try for a resource by this name:
+	    return getBitmap(context, klass, name, true, true);
+    }
+
+
+    // ----------------------------------------------------------
+    /**
+     * Get an image resource by name, taking the current device's DPI into
+     * account.  The image may be a traditional Android resource, in which
+     * case the normal resource mechanism is used to look it up, or it may
+     * be stored in the application/context package.  Alternatively, the
+     * image may be stored in a package relative to the specified class
+     * (or application). The package containing the class parameter should
+     * have a subpackage named "images", with one or more of its own
+     * subpackages that match the DPI identifiers used in resources:
+     * "ldpi", "mdpi", "hdpi", and/or "xhdpi". Image files are held in these
+     * dpi-based subpackages.  The "images" subpackage itself will also be
+     * searched, with images it contains treated at the same DPI as the device.
+     *
+     * @param context The context for determining the display resolution,
+     *                and also the application's package, if needed.
+     * @param klass   The class representing the package where the images are
+     *                located.
+     * @param name    The name of the image file, including its extension.
+     * @param searchAppPkg If true, and no image is found with respect to
+     *                klass' package (or if klass is null), the search will
+     *                also look in the application package determined by the
+     *                context.  If false, the application package will not
+     *                be searched.
+     * @param scaleForDpi If true, the loaded image will be automatically
+     *                upscaled or downscaled for the current device display
+     *                density by the BitmapFactory.  If false, the image will
+     *                be loaded at its stored resolution regardless of the
+     *                current display density.
+     * @return An {@code Bitmap} containing the image, or null if no
+     *     image could be found.
+     */
+    public static Bitmap getBitmap(
+        Context context, Class<?> klass, String name,
+        boolean searchAppPkg, boolean scaleForDpi)
+    {
+        BitmapFactory.Options bfo = null;
+        if (!scaleForDpi)
+        {
+            bfo = new BitmapFactory.Options();
+            bfo.inScaled = false;
+        }
+
+        boolean hasExtension = false;
+        String nameWithoutExt = name;
+        {
+            // trim file extension, if present
+            int pos = name.lastIndexOf('.');
+            if (pos >= 0)
+            {
+                nameWithoutExt = name.substring(0, pos);
+                hasExtension = true;
+            }
+        }
+
+        // First, try for a resource by this name:
 	    int id = context.getResources().getIdentifier(
-	        name, "drawable", context.getPackageName());
+	        nameWithoutExt, "drawable", context.getPackageName());
 	    if (id != 0)
 	    {
 	        return BitmapFactory.decodeResource(
-	            context.getResources(), id);
+	            context.getResources(), id, bfo);
 	    }
 
 	    // If no resource was found ...
@@ -112,8 +171,23 @@ public class JarResources
 		{
     		for (int attempt : SEARCH_PATTERN[pattern])
     		{
-    			stream = klass.getResourceAsStream(
-    			    "images/" + DENSITY_NAME[attempt] + "/" + name);
+    		    String dir = "images/" + DENSITY_NAME[attempt] + "/";
+    		    if (hasExtension)
+    		    {
+    		        stream = klass.getResourceAsStream(dir + name);
+    		    }
+    		    else
+    		    {
+    	            for (String extension : EXTENSIONS)
+    	            {
+                        stream =
+                            klass.getResourceAsStream(dir + name + extension);
+                        if (stream != null)
+                        {
+                            break;
+                        }
+    	            }
+    		    }
 
     			if (stream != null)
     			{
@@ -144,8 +218,24 @@ public class JarResources
 		        : klass.getClass().getClassLoader();
 		    for (int attempt : SEARCH_PATTERN[pattern])
 		    {
-		        stream = loader.getResourceAsStream(
-		            base + DENSITY_NAME[attempt] + "/" + name);
+		        String dir = base + DENSITY_NAME[attempt] + "/";
+
+                if (hasExtension)
+                {
+                    stream = loader.getResourceAsStream(dir + name);
+                }
+                else
+                {
+                    for (String extension : EXTENSIONS)
+                    {
+                        stream =
+                            loader.getResourceAsStream(dir + name + extension);
+                        if (stream != null)
+                        {
+                            break;
+                        }
+                    }
+                }
 
 		        if (stream != null)
 		        {
@@ -164,11 +254,17 @@ public class JarResources
 		Bitmap result = null;
 		if (stream != null)
 		{
-		    result = BitmapFactory.decodeStream(stream);
-		    if (foundDensity >= 0)
-		    {
-		        result.setDensity(DENSITY[foundDensity]);
-		    }
+            if (foundDensity >= 0 && scaleForDpi)
+            {
+                bfo = new BitmapFactory.Options();
+                bfo.inDensity = DENSITY[foundDensity];
+            }
+            else if (!scaleForDpi)
+            {
+                bfo = new BitmapFactory.Options();
+                bfo.inScaled = false;
+            }
+		    result = BitmapFactory.decodeStream(stream, null, bfo);
 		}
 		return result;
 	}
@@ -215,4 +311,8 @@ public class JarResources
         { HDPI, XHDPI, MDPI, LDPI },  // for hdpi screens
         { XHDPI, HDPI, MDPI, LDPI }   // for xhdpi screens
 	};
+
+    private static final String[] EXTENSIONS = {
+        ".png", ".PNG", ".gif", ".GIF", ".jpg", ".JPG", ".JPEG", ".JPEG"
+    };
 }
