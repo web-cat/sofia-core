@@ -22,7 +22,7 @@ import android.util.DisplayMetrics;
  *
  * @author Tony Allevato
  * @author  Last changed by $Author: edwards $
- * @version $Date: 2012/08/04 15:52 $
+ * @version $Date: 2012/08/21 14:15 $
  */
 public class JarResources
 {
@@ -320,7 +320,22 @@ public class JarResources
 	    if (stream == null)
 	    {
 	        // If we make it here, try for the default (no density) name
-	        stream = loader.getResourceAsStream(base + name);
+            if (hasExtension)
+            {
+                stream = loader.getResourceAsStream(base + name);
+            }
+            else
+            {
+                for (String extension : EXTENSIONS)
+                {
+                    stream =
+                        loader.getResourceAsStream(base + name + extension);
+                    if (stream != null)
+                    {
+                        break;
+                    }
+                }
+            }
 	    }
 
 		if (stream != null)
