@@ -627,9 +627,9 @@ public class ScreenMixin
     	if (id != null)
     	{
     		MethodDispatcher dispatcher1 =
-    				new MethodDispatcher(id + "Selected", 1);
+    				new MethodDispatcher(id + "Clicked", 1);
     		MethodDispatcher dispatcher0 =
-    				new MethodDispatcher(id + "Selected", 0);
+    				new MethodDispatcher(id + "Clicked", 0);
 
 			if (dispatcher1.supportedBy(activity, item))
 			{
