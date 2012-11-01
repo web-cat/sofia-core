@@ -3,7 +3,7 @@ package sofia.util;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import sofia.internal.MethodDispatcher;
+import sofia.internal.events.EventDispatcher;
 
 //--------------------------------------------------------------------------
 /**
@@ -229,6 +229,7 @@ public abstract class Observable
 
 		private Object receiver;
 		private String method;
+		private EventDispatcher event;
 
 
 		//~ Constructors ......................................................
@@ -238,6 +239,7 @@ public abstract class Observable
 		{
 			this.receiver = receiver;
 			this.method = method;
+			event = new EventDispatcher(method);
 		}
 
 
@@ -246,23 +248,18 @@ public abstract class Observable
 		// ----------------------------------------------------------
 		public void observe(Object object, Object... arguments)
 		{
-			// Create a new argument array that has the 
+			// Create a new argument array that has the observable object
+			// first, followed by the remaining arguments.
 			Object[] realArgs = new Object[arguments.length + 1];
 			realArgs[0] = object;
 			System.arraycopy(arguments, 0, realArgs, 1, arguments.length);
 
-			MethodDispatcher dispatcher = new MethodDispatcher(method,
-					realArgs.length);
-			
-			if (dispatcher.supportedBy(receiver, realArgs))
-			{
-				 dispatcher.callMethodOn(receiver, realArgs);
-			}
-			else
-			{
-				dispatcher = new MethodDispatcher(method, 1);
-				dispatcher.callMethodOn(receiver, object);
-			}
+			// Try to dispatch first to the one that takes the actual
+			// arguments, or to one that just takes the observable object.
+			@SuppressWarnings("unused")
+			boolean result =
+					event.dispatch(receiver, realArgs) ||
+					event.dispatch(receiver, object);
 		}
 		
 
