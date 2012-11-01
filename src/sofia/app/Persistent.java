@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
  * when the activity is dismissed and restored the next time the activity is
  * started.
  * </p><p>
- * By default, the field will be set to null (or zero for primitve types) if
+ * By default, the field will be set to null (or zero for primitive types) if
  * it is not found when loading the activity's persistent storage file. (This
  * can happen when the application is first loaded, or if new persistent fields
  * are added during development.) 
