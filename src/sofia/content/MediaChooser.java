@@ -1,6 +1,6 @@
 package sofia.content;
 
-import sofia.app.ActivityStarter;
+import sofia.app.internal.AbsActivityStarter;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -19,24 +19,29 @@ import android.net.Uri;
  * called on the screen, if it exists. For example:
  * </p>
  * <pre>
- * public void buttonClicked()
+ * public class MyScreen extends Screen
  * {
- *     MediaChooser chooser = new MediaChooser();
- *     chooser.start(this);
- * }
+ *     public void buttonClicked()
+ *     {
+ *         MediaChooser chooser = new MediaChooser();
+ *         chooser.start(this);
+ *     }
  * 
- * public void <b>mediaWasChosen</b>(MediaChooser chooser)
- * {
- *     // Do something with the media by calling chooser.getBitmap(),
- *     // chooser.getUri(), or chooser.getPath().
- * }
- * </pre>
+ *     public void <b>mediaWasChosen</b>(MediaChooser chooser)
+ *     {
+ *         // Do something with the media by calling chooser.getBitmap(),
+ *         // chooser.getUri(), or chooser.getPath().
+ *     }
+ * }</pre>
  * 
- * @author Tony Allevato
+ * @author  Tony Allevato
+ * @version 2012.09.05
  */
-public class MediaChooser extends ActivityStarter
+public class MediaChooser extends AbsActivityStarter
 {
-	//~ Instance/static variables .............................................
+	//~ Fields ................................................................
+
+	private static final String DEFAULT_METHOD_NAME = "mediaWasChosen";
 
 	private String type;
     private Uri uri;
@@ -46,6 +51,10 @@ public class MediaChooser extends ActivityStarter
     //~ Constructors ..........................................................
 
     // ----------------------------------------------------------
+    /**
+     * Initializes a new media chooser that, by default, has the content type
+     * {@code image/*}.
+     */
 	public MediaChooser()
 	{
 		type = "image/*";
@@ -55,13 +64,12 @@ public class MediaChooser extends ActivityStarter
 	//~ Methods ...............................................................
 	
     // ----------------------------------------------------------
-	protected String getDefaultCallback()
-	{
-		return "mediaWasChosen";
-	}
-
-
-    // ----------------------------------------------------------
+	/**
+	 * Gets the content type of the acceptable kinds of media that can be
+	 * selected by this media chooser.
+	 * 
+	 * @return the content type for this media chooser
+	 */
 	public String getType()
 	{
 		return type;
@@ -69,6 +77,21 @@ public class MediaChooser extends ActivityStarter
 
 
 	// ----------------------------------------------------------
+	/**
+	 * <p>
+	 * Sets the content type (also known as the MIME type or internet media
+	 * type) of the acceptable kinds of media that can be selected by this
+	 * media chooser. This content type can be a specific individual type
+	 * (such as {@code image/jpeg}) or include a wildcard to support multiple
+	 * related types (e.g., {@code image/*} or {@code video/*}).
+	 * </p><p>
+	 * More information about content types can be found in the Wikipedia
+	 * article <a href="http://en.wikipedia.org/wiki/Internet_media_type">
+	 * Internet media types</a>. 
+	 * </p>
+	 * 
+	 * @param newType the MIME type for this media chooser
+	 */
 	public void setType(String newType)
 	{
 		this.type = newType;
@@ -76,17 +99,84 @@ public class MediaChooser extends ActivityStarter
 
 
 	// ----------------------------------------------------------
-	public void start(Activity owner, String callback)
+	/**
+	 * Starts the media chooser. When the user has chosen an item from the
+	 * media gallery, the owning {@code Activity} (or {@code Screen}) will
+	 * have its {@code mediaWasChosen} method called.
+	 * 
+	 * @param owner the activity or screen that owns this media chooser and
+	 *     will receive a notification when a media item is chosen
+	 */
+	@Override
+	public void start(Activity owner)
+	{
+		// This is overridden here for Javadoc purposes.
+		super.start(owner);
+	}
+
+
+	// ----------------------------------------------------------
+	/**
+	 * Starts the media chooser. When the user has chosen an item from the
+	 * media gallery, the owning {@code Activity} (or {@code Screen}) will
+	 * have the method with the name specified by {@code method} called.
+	 * 
+	 * @param owner the activity or screen that owns this media chooser and
+	 *     will receive a notification when a media item is chosen
+	 * @param method the name of the method that will be called on
+	 *     {@code owner} when a media item is chosen
+	 */
+	public void start(Activity owner, String method)
 	{
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType(type);
 
 		startActivityForResult(
-				owner, callback,
+				owner, method,
 				Intent.createChooser(intent, "Select an image"));
 	}
 	
 	
+    // ----------------------------------------------------------
+	/**
+	 * Gets the {@link Uri} (uniform resource identifier) of the media that was
+	 * chosen in the media chooser.
+	 * 
+	 * @return the {@link Uri} of the media that was chosen
+	 */
+	public Uri getUri()
+	{
+		return uri;
+	}
+	
+	
+    // ----------------------------------------------------------
+	/**
+	 * Gets the file system path of the media that was chosen in the media
+	 * chooser.
+	 * 
+	 * @return the file system path of the media that was chosen
+	 */
+	public String getPath()
+	{
+        return path;
+	}
+
+
+    // ----------------------------------------------------------
+	/**
+	 * A convenience method that returns the chosen image as a {@code Bitmap}
+	 * if the selected media was an image. Otherwise, the method returns null.
+	 * 
+	 * @return a {@code Bitmap} that represents the image that was chosen, or
+	 *     null if it was not an image
+	 */
+	public Bitmap getBitmap()
+	{
+        return BitmapFactory.decodeFile(getPath());
+	}
+
+
     // ----------------------------------------------------------
 	public void handleActivityResult(
 			Activity owner, Intent data, int requestCode, int resultCode)
@@ -99,25 +189,11 @@ public class MediaChooser extends ActivityStarter
 
 		super.handleActivityResult(owner, data, requestCode, resultCode);
 	}
-	
-	
-    // ----------------------------------------------------------
-	public Uri getUri()
-	{
-		return uri;
-	}
-	
-	
-    // ----------------------------------------------------------
-	public String getPath()
-	{
-        return path;
-	}
 
 
     // ----------------------------------------------------------
-	public Bitmap getBitmap()
+	protected String getDefaultCallback()
 	{
-        return BitmapFactory.decodeFile(getPath());
+		return DEFAULT_METHOD_NAME;
 	}
 }

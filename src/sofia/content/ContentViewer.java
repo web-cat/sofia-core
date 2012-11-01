@@ -1,7 +1,7 @@
 package sofia.content;
 
-import sofia.app.ActivityStarter;
 import sofia.app.Screen;
+import sofia.app.internal.AbsActivityStarter;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
@@ -21,22 +21,27 @@ import android.net.Uri;
  * exists. For example:
  * </p>
  * <pre>
- * public void buttonClicked()
+ * public class MyScreen extends Screen
  * {
- *     new ContentViewer(uri).start(this);
- * }
+ *     public void buttonClicked()
+ *     {
+ *         new ContentViewer(uri).start(this);
+ *     }
  * 
- * public void <b>contentViewerFinished</b>(ContentViewer viewer)
- * {
- *     // Do something when the viewer closes, if desired.
- * }
- * </pre>
+ *     public void <b>contentViewerFinished</b>(ContentViewer viewer)
+ *     {
+ *         // Do something when the viewer closes, if desired.
+ *     }
+ * }</pre>
  * 
- * @author Tony Allevato
+ * @author  Tony Allevato
+ * @version 2012.09.05
  */
-public class ContentViewer extends ActivityStarter
+public class ContentViewer extends AbsActivityStarter
 {
-	//~ Instance/static variables .............................................
+	//~ Fields ................................................................
+
+	private static final String DEFAULT_METHOD_NAME = "contentViewerFinished";
 
     private Uri uri;
 
@@ -44,6 +49,13 @@ public class ContentViewer extends ActivityStarter
     //~ Constructors ..........................................................
 
     // ----------------------------------------------------------
+    /**
+     * Initializes a new content viewer that will display the content at the
+     * specified {@link Uri}.
+     * 
+     * @param uri the {@link Uri} of the content that will be displayed by this
+     *     viewer
+     */
 	public ContentViewer(Uri uri)
 	{
 		this.uri = uri;
@@ -53,25 +65,73 @@ public class ContentViewer extends ActivityStarter
 	//~ Methods ...............................................................
 	
     // ----------------------------------------------------------
-	protected String getDefaultCallback()
+	/**
+	 * Gets the {@link Uri} of the content that will be displayed by this
+	 * viewer.
+	 * 
+	 * @return the {@link Uri} to the content that will be displayed by this
+	 *     viewer
+	 */
+	public Uri getUri()
 	{
-		return "contentViewerFinished";
+		return uri;
 	}
 
 
 	// ----------------------------------------------------------
-	public void start(Activity owner, String callback)
+	/**
+	 * Sets the {@link Uri} of the content that will be displayed by this
+	 * viewer.
+	 * 
+	 * @param newUri the {@link Uri} to the content that will be displayed by
+	 *     this viewer
+	 */
+	public void setUri(Uri newUri)
+	{
+		uri = newUri;
+	}
+
+
+	// ----------------------------------------------------------
+	/**
+	 * Starts the content viewer. When the user dismisses the viewer, the
+	 * owning {@code Activity} (or {@code Screen}) will have its
+	 * {@code contentViewerFinished} method called.
+	 * 
+	 * @param owner the activity or screen that owns this content viewer and
+	 *     will receive a notification when it is dismissed
+	 */
+	@Override
+	public void start(Activity owner)
+	{
+		// This is overridden here for Javadoc purposes.
+		super.start(owner);
+	}
+
+
+	// ----------------------------------------------------------
+	/**
+	 * Starts the content viewer. When the user dismisses the viewer, the
+	 * owning {@code Activity} (or {@code Screen}) will have the method with
+	 * the name specified by {@code method} called.
+	 * 
+	 * @param owner the activity or screen that owns this content viewer and
+	 *     will receive a notification when it is dismissed
+	 * @param method the name of the method that will be called on
+	 *     {@code owner} when the content viewer is dismissed
+	 */
+	public void start(Activity owner, String method)
 	{
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setData(uri);
 
-		startActivityForResult(owner, callback, intent);
+		startActivityForResult(owner, method, intent);
 	}
 
 	
     // ----------------------------------------------------------
-	public Uri getUri()
+	protected String getDefaultCallback()
 	{
-		return uri;
+		return DEFAULT_METHOD_NAME;
 	}
 }
