@@ -14,8 +14,7 @@ package sofia.util;
  *  <pre>
  *  Random random = Random.generator();  // or new Random()
  *  ...
- *  int x = random.nextInt(64);
- *  </pre>
+ *  int x = random.nextInt(64);</pre>
  *
  *  <p>You can then write test cases that look like this:</p>
  *  <pre>
@@ -23,12 +22,11 @@ package sofia.util;
  *  {
  *      // Set the return values for the next 6 calls to nextInt(),
  *      // No matter which instance of TestableRandom the method is called on
- *      TestableRandom.setNextInts(5, 10, 22, 13, 12, 47);
+ *      Random.setNextInts(5, 10, 22, 13, 12, 47);
  *
  *      // Perform tests, knowing in advance the exact sequence of numbers
  *      // That will now be generated
- *  }
- *  </pre>
+ *  }</pre>
  *
  *  <p>This class provides separate methods to preset the sequence of
  *  booleans, ints, doubles, floats, bytes, or Gaussian-distributed doubles
@@ -38,8 +36,7 @@ package sofia.util;
  *
  *  <pre>
  *  int[] someValues = new int[] { 1, 2, 3, 4, 5, 6, 7 };
- *  TestableRandom.setNextInts(someValues);
- *  </pre>
+ *  Random.setNextInts(someValues);</pre>
  *
  *  @author  Stephen Edwards
  *  @author  Last changed by $Author: stedwar2 $
@@ -683,14 +680,8 @@ public class Random
     public float nextFloat(float low, float high)
     {
         float raw = nextFloat();
-        if (low <= raw && raw < high)
-        {
-            return raw;
-        }
-        else
-        {
-            return low + (high - low) * raw;
-        }
+
+        return low + (high - low) * raw;
     }
 
 
@@ -749,14 +740,8 @@ public class Random
     public double nextDouble(double low, double high)
     {
         double raw = nextDouble();
-        if (low <= raw && raw < high)
-        {
-            return raw;
-        }
-        else
-        {
-            return low + (high - low) * raw;
-        }
+
+        return low + (high - low) * raw;
     }
 
 
