@@ -19,21 +19,18 @@ package sofia.view;
 import android.content.Context;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
-import android.view.ScaleGestureDetector;
-import android.view.ScaleGestureDetector.OnScaleGestureListener;
-import android.view.ScaleGestureDetector.SimpleOnScaleGestureListener;
 import android.view.View;
 import android.view.ViewConfiguration;
 
 /**
  * Detects transformation gestures involving more than one pointer ("multitouch")
- * using the supplied {@link MotionEvent}s. The {@link OnScaleGestureListener}
+ * using the supplied {@link MotionEvent}s. The {@link OnRotateGestureListener}
  * callback will notify users when a particular gesture event has occurred.
  * This class should only be used with {@link MotionEvent}s reported via touch.
  *
  * To use this class:
  * <ul>
- *  <li>Create an instance of the {@code ScaleGestureDetector} for your
+ *  <li>Create an instance of the {@code RotateGestureDetector} for your
  *      {@link View}
  *  <li>In the {@link View#onTouchEvent(MotionEvent)} method ensure you call
  *          {@link #onTouchEvent(MotionEvent)}. The methods defined in your
@@ -46,18 +43,18 @@ public class RotateGestureDetector
      * The listener for receiving notifications when gestures occur.
      * If you want to listen for all the different gestures then implement
      * this interface. If you only want to listen for a subset it might
-     * be easier to extend {@link SimpleOnScaleGestureListener}.
+     * be easier to extend {@link SimpleOnRotateGestureListener}.
      *
      * An application will receive events in the following order:
      * <ul>
-     *  <li>One {@link OnGestureListener#onScaleBegin(ScaleGestureDetector)}
-     *  <li>Zero or more {@link OnScaleGestureListener#onScale(ScaleGestureDetector)}
-     *  <li>One {@link OnScaleGestureListener#onScaleEnd(ScaleGestureDetector)}
+     *  <li>One {@link OnRotateGestureListener#onRotateBegin(RotateGestureDetector)}
+     *  <li>Zero or more {@link OnRotateGestureListener#onRotate(RotateGestureDetector)}
+     *  <li>One {@link OnRotateGestureListener#onRotateEnd(RotateGestureDetector)}
      * </ul>
      */
     public interface OnRotateGestureListener {
         /**
-         * Responds to scaling events for a gesture in progress.
+         * Responds to rotation events for a gesture in progress.
          * Reported by pointer motion.
          *
          * @param detector The detector reporting the event - use this to
@@ -66,13 +63,13 @@ public class RotateGestureDetector
          *          as handled. If an event was not handled, the detector
          *          will continue to accumulate movement until an event is
          *          handled. This can be useful if an application, for example,
-         *          only wants to update scaling factors if the change is
+         *          only wants to update rotation factors if the change is
          *          greater than 0.01.
          */
         public boolean onRotate(RotateGestureDetector detector);
 
         /**
-         * Responds to the beginning of a scaling gesture. Reported by
+         * Responds to the beginning of a rotation gesture. Reported by
          * new pointers going down.
          *
          * @param detector The detector reporting the event - use this to
@@ -80,17 +77,17 @@ public class RotateGestureDetector
          * @return Whether or not the detector should continue recognizing
          *          this gesture. For example, if a gesture is beginning
          *          with a focal point outside of a region where it makes
-         *          sense, onScaleBegin() may return false to ignore the
+         *          sense, onRotateBegin() may return false to ignore the
          *          rest of the gesture.
          */
         public boolean onRotateBegin(RotateGestureDetector detector);
 
         /**
-         * Responds to the end of a scale gesture. Reported by existing
+         * Responds to the end of a rotation gesture. Reported by existing
          * pointers going up.
          *
-         * Once a scale has ended, {@link ScaleGestureDetector#getFocusX()}
-         * and {@link ScaleGestureDetector#getFocusY()} will return the location
+         * Once a rotation has ended, {@link RotateGestureDetector#getFocusX()}
+         * and {@link RotateGestureDetector#getFocusY()} will return the location
          * of the pointer remaining on the screen.
          *
          * @param detector The detector reporting the event - use this to
@@ -101,12 +98,12 @@ public class RotateGestureDetector
 
     /**
      * A convenience class to extend when you only want to listen for a subset
-     * of scaling-related events. This implements all methods in
-     * {@link OnScaleGestureListener} but does nothing.
-     * {@link OnScaleGestureListener#onScale(ScaleGestureDetector)} returns
-     * {@code false} so that a subclass can retrieve the accumulated scale
-     * factor in an overridden onScaleEnd.
-     * {@link OnScaleGestureListener#onScaleBegin(ScaleGestureDetector)} returns
+     * of rotation-related events. This implements all methods in
+     * {@link OnRotateGestureListener} but does nothing.
+     * {@link OnRotateGestureListener#onRotate(RotateGestureDetector)} returns
+     * {@code false} so that a subclass can retrieve the accumulated rotation
+     * factor in an overridden onRotateEnd.
+     * {@link OnRotateGestureListener#onRotateBegin(RotateGestureDetector)} returns
      * {@code true}.
      */
     public static class SimpleOnRotateGestureListener implements OnRotateGestureListener {
@@ -126,7 +123,7 @@ public class RotateGestureDetector
 
     /**
      * This value is the threshold ratio between our previous combined pressure
-     * and the current combined pressure. We will only fire an onScale event if
+     * and the current combined pressure. We will only fire an onRotate event if
      * the computed ratio between the current and previous event pressures is
      * greater than this value. When pressure decreases rapidly between events
      * the position values can often be imprecise, as it usually indicates
@@ -381,8 +378,8 @@ public class RotateGestureDetector
     }
 
     /**
-     * Returns {@code true} if a two-finger scale gesture is in progress.
-     * @return {@code true} if a scale gesture is in progress, {@code false} otherwise.
+     * Returns {@code true} if a two-finger rotate gesture is in progress.
+     * @return {@code true} if a rotate gesture is in progress, {@code false} otherwise.
      */
     public boolean isInProgress() {
         return mGestureInProgress;
@@ -445,11 +442,11 @@ public class RotateGestureDetector
     }
 
     /**
-     * Return the scaling factor from the previous scale event to the current
+     * Return the rotation factor from the previous rotation event to the current
      * event. This value is defined as
-     * ({@link #getCurrentSpan()} / {@link #getPreviousSpan()}).
+     * ({@link #getCurrentAngle()} / {@link #getPreviousAngle()}).
      *
-     * @return The current scaling factor.
+     * @return The current rotation factor.
      */
     public float getRotation() {
         if (mRotation == -1) {
@@ -466,9 +463,9 @@ public class RotateGestureDetector
 
     /**
      * Return the time difference in milliseconds between the previous
-     * accepted scaling event and the current scaling event.
+     * accepted rotation event and the current rotation event.
      *
-     * @return Time difference since the last scaling event in milliseconds.
+     * @return Time difference since the last rotation event in milliseconds.
      */
     public long getTimeDelta() {
         return mTimeDelta;

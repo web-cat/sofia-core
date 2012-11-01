@@ -15,18 +15,20 @@ import android.widget.TextView;
 
 //-------------------------------------------------------------------------
 /**
+ * <p>
  * A view that takes an arbitrary {@code Object} and renders it the best way it
  * knows how. The following types are currently supported:
+ * </p>
  * 
  * <dl>
- * <dt>String</dt>
- * <dd>Renders the string using a {@code TextView}.</dd>
+ * <dt>{@link String}</dt>
+ * <dd>Renders the string using a {@link TextView}.</dd>
  * 
- * <dt>Bitmap, Drawable</dt>
- * <dd>Renders the object using an {@code ImageView}.</dd>
+ * <dt>{@link Bitmap}, {@link Drawable}</dt>
+ * <dd>Renders the object using an {@link ImageView}.</dd>
  * </dl>
  * 
- * @author Tony Allevato
+ * @author  Tony Allevato
  * @version 2012.07.19
  */
 public class FlexibleContentView extends LinearLayout
@@ -61,6 +63,12 @@ public class FlexibleContentView extends LinearLayout
 	//~ Methods ...............................................................
 
 	// ----------------------------------------------------------
+	/**
+	 * Sets the content that is displayed by this view, changing the type of
+	 * the internal view to render it correctly.
+	 * 
+	 * @param object the content displayed in the view
+	 */
 	public void setContent(Object object)
 	{
 		if (contentView != null)
@@ -141,6 +149,11 @@ public class FlexibleContentView extends LinearLayout
 	
 	
 	// ----------------------------------------------------------
+	/**
+	 * Gets the maximum width of the view.
+	 * 
+	 * @return the maximum width of the view
+	 */
 	public int getMaxWidth()
 	{
 		return maxWidth;
@@ -148,6 +161,11 @@ public class FlexibleContentView extends LinearLayout
 
 
 	// ----------------------------------------------------------
+	/**
+	 * Sets the maximum width of the view.
+	 * 
+	 * @param maxWidth the new maximum width of the view
+	 */
 	public void setMaxWidth(int maxWidth)
 	{
 		this.maxWidth = maxWidth;
@@ -156,6 +174,11 @@ public class FlexibleContentView extends LinearLayout
 
 
 	// ----------------------------------------------------------
+	/**
+	 * Gets the maximum height of the view.
+	 * 
+	 * @return the maximum height of the view
+	 */
 	public int getMaxHeight()
 	{
 		return maxHeight;
@@ -163,6 +186,11 @@ public class FlexibleContentView extends LinearLayout
 
 
 	// ----------------------------------------------------------
+	/**
+	 * Sets the maximum height of the view.
+	 * 
+	 * @param maxWidth the new maximum height of the view
+	 */
 	public void setMaxHeight(int maxHeight)
 	{
 		this.maxHeight = maxHeight;
@@ -171,6 +199,11 @@ public class FlexibleContentView extends LinearLayout
 
 
 	// ----------------------------------------------------------
+	/**
+	 * Gets the color used to render the view's content when it is text.
+	 * 
+	 * @return the color used to render the view's content when it is text
+	 */
 	public int getTextColor()
 	{
 		return textColor;
@@ -178,6 +211,11 @@ public class FlexibleContentView extends LinearLayout
 
 
 	// ----------------------------------------------------------
+	/**
+	 * Sets the color used to render the view's content when it is text.
+	 * 
+	 * @param color the color used to render the view's content when it is text
+	 */
 	public void setTextColor(int color)
 	{
 		this.textColor = color;
@@ -191,6 +229,11 @@ public class FlexibleContentView extends LinearLayout
 
 
 	// ----------------------------------------------------------
+	/**
+	 * Gets the text size used to render the view's content when it is text.
+	 * 
+	 * @return the text size used to render the view's content when it is text
+	 */
 	public float getTextSize()
 	{
 		return textSize;
@@ -198,6 +241,12 @@ public class FlexibleContentView extends LinearLayout
 
 
 	// ----------------------------------------------------------
+	/**
+	 * Sets the text size used to render the view's content when it is text.
+	 * 
+	 * @param size the text size used to render the view's content when it is
+	 *     text
+	 */	
 	public void setTextSize(float size)
 	{
 		this.textSize = size;
@@ -211,6 +260,13 @@ public class FlexibleContentView extends LinearLayout
 
 
 	// ----------------------------------------------------------
+	/**
+	 * Sets the text size used to render the view's content when it is text.
+	 * 
+	 * @param unit the desired dimensional unit
+	 * @param size the text size used to render the view's content when it is
+	 *     text
+	 */	
 	public void setTextSize(int unit, float size)
 	{
 		DisplayMetrics metrics = new DisplayMetrics();
