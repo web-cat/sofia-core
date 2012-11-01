@@ -1,107 +1,132 @@
 package sofia.app;
 
+import sofia.app.internal.AbsActivityStarter;
 import sofia.app.internal.ScreenMixin;
 import sofia.internal.MethodDispatcher;
+import sofia.internal.NameUtils;
 import android.app.Activity;
 import android.content.Intent;
 
-//-------------------------------------------------------------------------
+//---------------------------------------------------------------
 /**
- * An abstract class that helps manage the presentation of built-in activities
- * (such as the media chooser or camera), handling the communication of the
- * results from those activities back to the caller.
- * 
- * @author Tony Allevato
+ * <p>
+ * Starts another screen or activity for the user and slides it into view. This
+ * class can be used in one of two ways:
+ * </p>
+ * <ol>
+ * <li>To start a subclass of {@code Screen} (or {@code MapScreen}), you create
+ * an {@code ActivityStarter} and pass it the class that should be started and
+ * the arguments that you want to pass to its {@code initialize} method. When
+ * the activity returns, a callback will be called based on the name of the
+ * activity class.</li>
+ * <li>To start a traditional Android activity based on an {@link Intent}, pass
+ * the {@link Intent} object and the name of a callback method that will be
+ * called when the activity returns.</li>
+ * </ol>
+ * <p>
+ * Users can use this class directly but should probably prefer the
+ * {@link Screen#presentScreen(Class, Object...)} and
+ * {@link Screen#presentActivity(Intent, String)} methods instead.
+ * </p>
+ *  
+ * @author  Tony Allevato
+ * @version 2012.09.26
  */
-public abstract class ActivityStarter
+public class ActivityStarter extends AbsActivityStarter
 {
-	//~ Instance/static variables .............................................
+	//~ Fields ................................................................
 
+	private Class<? extends Activity> screenClass;
+	private Object[] params;
+	private Intent intent;
 	private String callback;
-	private boolean canceled;
 
-
-	//~ Methods ...............................................................
-
+	
+	//~ Constructors ..........................................................
+	
 	// ----------------------------------------------------------
-	/**
-	 *  
-	 * @param owner
-	 */
-	public void start(Activity owner)
+	public ActivityStarter(Intent intent, String callback)
 	{
-		start(owner, getDefaultCallback());
-	}
-	
-	
-	// ----------------------------------------------------------
-	/**
-	 * 
-	 * @param owner
-	 * @param callback
-	 */
-	public abstract void start(Activity owner, String callback);
-
-	
-	// ----------------------------------------------------------
-	protected final void startActivityForResult(
-			Activity owner, String callback, Intent intent)
-	{
+		this.intent = intent;
 		this.callback = callback;
-
-		ScreenMixin internals = ScreenMixin.getMixin(owner);
-		internals.startActivityForResult(this, intent,
-				ScreenMixin.ACTIVITY_STARTER_REQUEST_CODE);
 	}
 
 
 	// ----------------------------------------------------------
-	/**
-	 * Subclasses should override this method to return the name of the method
-	 * that will be called on the parent activity when the child activity ends,
-	 * if one is not provided in the {@link #start(Activity, String)} method.
-	 * 
-	 * @return the name of the method to call when the child activity ends
-	 */
-	protected abstract String getDefaultCallback();
-
-
-	// ----------------------------------------------------------
-	/**
-	 * 
-	 * @return
-	 */
-	protected String getCallback()
+	public ActivityStarter(Class<? extends Activity> screenClass,
+			Object... params)
 	{
-		return callback;
+		this.screenClass = screenClass;
+		this.params = params;
 	}
 
 
+	//~ Public methods ........................................................
+
 	// ----------------------------------------------------------
-	/**
-	 * 
-	 * @return
-	 */
-	public boolean wasCanceled()
+	@Override
+	public void start(Activity owner, String callback)
 	{
-		return canceled;
+		Intent theIntent;
+
+		if (intent != null)
+		{
+			theIntent = intent;
+		}
+		else
+		{
+	        theIntent = new Intent(owner, screenClass);
+	        theIntent.putExtra(ScreenMixin.SCREEN_ARGUMENTS,
+	            ScreenMixin.registerScreenArguments(params));
+		}
+
+        startActivityForResult(owner, callback, theIntent);
 	}
 
 
-	// ----------------------------------------------------------
-	/**
-	 * 
-	 * @param owner
-	 * @param data
-	 * @param requestCode
-	 * @param resultCode
-	 */
-	public void handleActivityResult(Activity owner,
-			Intent data, int requestCode, int resultCode)
-	{
-		canceled = (resultCode == Activity.RESULT_CANCELED);
+	//~ Protected methods .....................................................
 
-        MethodDispatcher dispatcher = new MethodDispatcher(getCallback(), 1);
-        dispatcher.callMethodOn(owner, this);
+	// ----------------------------------------------------------
+	@Override
+	protected String getDefaultCallback()
+	{
+		return NameUtils.classToMethod(screenClass) + "Finished";
+	}	
+
+
+	// ----------------------------------------------------------
+	protected String getCanceledCallback()
+	{
+		return NameUtils.classToMethod(screenClass) + "Canceled";
+	}	
+
+
+	// ----------------------------------------------------------
+	@Override
+	protected void invokeCallback(Activity owner, Intent data, int resultCode)
+	{
+		if (intent == null)
+		{
+			Object result = ScreenMixin.takeScreenResult(data);
+
+			if (resultCode == Activity.RESULT_CANCELED)
+			{
+		        MethodDispatcher dispatcher =
+		        		new MethodDispatcher(getCanceledCallback(), 1);
+		        dispatcher.callMethodOn(owner);
+			}
+			else
+			{
+		        MethodDispatcher dispatcher =
+		        		new MethodDispatcher(getDefaultCallback(), 1);
+		        dispatcher.callMethodOn(owner, result);
+			}
+		}
+		else
+		{
+	        MethodDispatcher dispatcher =
+	        		new MethodDispatcher(callback, 2);
+	        dispatcher.callMethodOn(owner, data, resultCode);
+		}
 	}
 }
