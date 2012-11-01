@@ -1,4 +1,4 @@
-package sofia.internal;
+package sofia.internal.events;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

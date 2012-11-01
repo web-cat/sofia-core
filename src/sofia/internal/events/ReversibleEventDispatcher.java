@@ -1,4 +1,4 @@
-package sofia.internal;
+package sofia.internal.events;
 
 import java.util.ArrayList;
 import java.util.List;
