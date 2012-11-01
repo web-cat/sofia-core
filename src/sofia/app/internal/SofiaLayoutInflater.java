@@ -2,7 +2,8 @@ package sofia.app.internal;
 
 import java.lang.reflect.Field;
 
-import sofia.internal.MethodDispatcher;
+import sofia.internal.events.EventDispatcher;
+import sofia.internal.events.OptionalEventDispatcher;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -17,8 +18,17 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.TextView;
 
+//-------------------------------------------------------------------------
+/**
+ * TODO document
+ * 
+ * @author  Tony Allevato
+ * @version 2012.11.01
+ */
 public class SofiaLayoutInflater extends LayoutInflater
 {
+	//~ Fields ................................................................
+
 	private static final String ANDROID_NS =
 			"http://schemas.android.com/apk/res/android";
 
@@ -27,6 +37,8 @@ public class SofiaLayoutInflater extends LayoutInflater
         "android.widget.", "android.webkit.", "android.view."
     };
     
+
+    //~ Constructors ..........................................................
 
     // ----------------------------------------------------------
 	public SofiaLayoutInflater(Context context)
@@ -41,7 +53,9 @@ public class SofiaLayoutInflater extends LayoutInflater
 		super(original, newContext);
 	}
 
-	
+
+	//~ Methods ...............................................................
+
     // ----------------------------------------------------------
     @Override
     protected View onCreateView(String name, AttributeSet attrs)
@@ -55,8 +69,8 @@ public class SofiaLayoutInflater extends LayoutInflater
 
                 if (view != null)
                 {
-                	autoBindEvents(view, attrs);
                 	bindField(view, attrs);
+                	autoBindEvents(view, attrs);
                     return view;
                 }
             }
@@ -150,25 +164,15 @@ public class SofiaLayoutInflater extends LayoutInflater
 
     		if (id != null)
     		{
-    			// TODO Optimize
-	    		final MethodDispatcher dispatcher1 =
-	    				new MethodDispatcher(id + "Clicked", 1);
-	    		final MethodDispatcher dispatcher0 =
-	    				new MethodDispatcher(id + "Clicked", 0);
+    			final OptionalEventDispatcher event =
+    					new OptionalEventDispatcher(id + "Clicked", 0);
 
 	    		try
 	    		{
 		    		view.setOnClickListener(new View.OnClickListener() {
 						public void onClick(View v)
 						{
-							if (dispatcher1.supportedBy(v.getContext(), v))
-							{
-								dispatcher1.callMethodOn(v.getContext(), v);
-							}
-							else
-							{
-								dispatcher0.callMethodOn(v.getContext());
-							}
+							event.dispatch(v.getContext(), v);
 						}
 					});
 	    		}
@@ -211,11 +215,8 @@ public class SofiaLayoutInflater extends LayoutInflater
     		String resourceId = getIdName(view.getContext(), view.getId());
     		final String id = (resourceId != null) ? resourceId : "listView";
 
-			// TODO Optimize
-    		final MethodDispatcher dispatcher2 =
-    				new MethodDispatcher(id + "ItemClicked", 2);
-    		final MethodDispatcher dispatcher1 =
-    				new MethodDispatcher(id + "ItemClicked", 1);
+			final OptionalEventDispatcher event =
+					new OptionalEventDispatcher(id + "ItemClicked", 1);
 
     		adapterView.setOnItemClickListener(
     				new AdapterView.OnItemClickListener() {
@@ -223,18 +224,7 @@ public class SofiaLayoutInflater extends LayoutInflater
 						View view, int position, long id)
 				{
 					Object item = parent.getAdapter().getItem(position);
-					if (dispatcher2.supportedBy(parent.getContext(), position, item))
-					{
-						dispatcher2.callMethodOn(parent.getContext(), position, item);
-					}
-					else if (dispatcher1.supportedBy(parent.getContext(), position))
-					{
-						dispatcher1.callMethodOn(parent.getContext(), position);
-					}
-					else
-					{
-						dispatcher1.callMethodOn(parent.getContext(), item);
-					}
+					event.dispatch(parent.getContext(), item, position);
 				}
 			});
     	}
@@ -261,13 +251,10 @@ public class SofiaLayoutInflater extends LayoutInflater
 
     		if (id != null)
     		{
-    			// TODO Optimize
-	    		final MethodDispatcher dispatcher2 =
-	    				new MethodDispatcher(id + "ItemSelected", 2);
-	    		final MethodDispatcher dispatcher1 =
-	    				new MethodDispatcher(id + "ItemSelected", 1);
-	    		final MethodDispatcher dispatcher0 =
-	    				new MethodDispatcher(id + "NothingSelected", 1);
+    			final OptionalEventDispatcher itemEvent =
+    					new OptionalEventDispatcher(id + "ItemSelected", 1);
+    			final EventDispatcher nothingEvent =
+    					new EventDispatcher(id + "NothingSelected");
 
 	    		adapterView.setOnItemSelectedListener(
 	    				new AdapterView.OnItemSelectedListener() {
@@ -275,24 +262,14 @@ public class SofiaLayoutInflater extends LayoutInflater
 							View view, int position, long id)
 					{
 						Object item = parent.getAdapter().getItem(position);
-						if (dispatcher2.supportedBy(parent.getContext(), position, item))
-						{
-							dispatcher2.callMethodOn(parent.getContext(), position, item);
-						}
-						else if (dispatcher1.supportedBy(parent.getContext(), position))
-						{
-							dispatcher1.callMethodOn(parent.getContext(), position);
-						}
-						else
-						{
-							dispatcher1.callMethodOn(parent.getContext(), item);
-						}
+						itemEvent.dispatch(
+								parent.getContext(), item, position);
 					}
 
 					@Override
 					public void onNothingSelected(AdapterView<?> parent)
 					{
-						dispatcher0.callMethodOn(parent.getContext());
+						nothingEvent.dispatch(parent.getContext());
 					}
 				});
     		}
@@ -315,7 +292,6 @@ public class SofiaLayoutInflater extends LayoutInflater
     	if (view instanceof EditText)
     	{
     		EditText editText = (EditText) view;
-    		
     		editText.setOnEditorActionListener(editorActionListener);
     	}
     }
@@ -401,20 +377,9 @@ public class SofiaLayoutInflater extends LayoutInflater
 
     		if (id != null)
     		{
-				// TODO Optimize
-	    		final MethodDispatcher dispatcher1 =
-	    				new MethodDispatcher(id + "EditingDone", 1);
-	    		final MethodDispatcher dispatcher0 =
-	    				new MethodDispatcher(id + "EditingDone", 0);
-
-				if (dispatcher1.supportedBy(v.getContext(), v))
-				{
-					dispatcher1.callMethodOn(v.getContext(), v);
-				}
-				else
-				{
-					dispatcher0.callMethodOn(v.getContext());
-				}
+    			final OptionalEventDispatcher event =
+    					new OptionalEventDispatcher(id + "EditingDone");
+    			event.dispatch(v.getContext(), v);
     		}
 		}    	
     };
