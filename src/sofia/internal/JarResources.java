@@ -4,6 +4,9 @@ import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -145,7 +148,7 @@ public class JarResources
         {
             name = name.substring(0, pos);
         }
-        System.out.println("looking for resource named " + name);
+        log.debug("looking for resource named {}", name);
 
         // Look for cached bitmap first
         Bitmap result = null;
@@ -156,7 +159,7 @@ public class JarResources
                 result = ref.get();
                 if (result != null)
                 {
-                    System.out.println("found cached resource for " + name);
+                    log.debug("found cached resource for {}", name);
                     return result;
                 }
             }
@@ -179,12 +182,12 @@ public class JarResources
         }
         if (result != null)
         {
-            System.out.println("caching resource id " + id + " for " + name);
+            log.debug("caching resource id {} for {}", id, name);
             RESOURCE_CACHE.put(name, new WeakReference<Bitmap>(result));
         }
         else
         {
-            System.out.println("cannot find resource " + name);
+            log.debug("cannot find resource {}", name);
         }
         return result;
     }
@@ -223,8 +226,7 @@ public class JarResources
         {
             pkgName = "";
         }
-        System.out.println("looking for image named " + name + " in '"
-            + pkgName + "'");
+        log.debug("looking for image named {} in '{}'", name, pkgName);
 
         // Look for cached bitmap first
         Bitmap result = null;
@@ -232,7 +234,7 @@ public class JarResources
             CLASSPATH_CACHE.get(pkgName);
         if (pkgMap == null)
         {
-            System.out.println("no package cache for '" + pkgName + "'");
+            log.debug("no package cache for '{}'", pkgName);
             pkgMap = new java.util.TreeMap<String, WeakReference<Bitmap>>();
             CLASSPATH_CACHE.put(pkgName, pkgMap);
         }
@@ -244,8 +246,8 @@ public class JarResources
                 result = ref.get();
                 if (result != null)
                 {
-                    System.out.println("found cached image for " + name
-                        + " in '" + pkgName + "'");
+                    log.debug("found cached image for {} in '{}'",
+                    		name, pkgName);
                     return result;
                 }
             }
@@ -355,20 +357,21 @@ public class JarResources
 		}
 		if (result != null)
 		{
-            System.out.println("caching image " + name + " for package '"
-                + pkgName + "'");
+            log.debug("caching image {} for package '{}'", name, pkgName);
 		    pkgMap.put(name, new WeakReference<Bitmap>(result));
 		}
 		else
 		{
-		    System.out.println("cannot find image " + name + " in '"
-		        + pkgName + "'");
+		    log.debug("cannot find image {} in '{}'", name, pkgName);
 		}
 		return result;
 	}
 
 
     //~ Fields ................................................................
+
+	private static final Logger log = LoggerFactory.getLogger(
+			JarResources.class);
 
     // Map from ints 0-3 to corresponding density names here
     private static final String[] DENSITY_NAME = {

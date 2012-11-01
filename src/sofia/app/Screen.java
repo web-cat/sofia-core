@@ -7,20 +7,23 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 
 // -------------------------------------------------------------------------
 /**
  * The {@code Screen} class represents a single screen in an Android
- * application.
+ * application. A {@code Screen} is a subclass of Android's notion of an
+ * {@link Activity}, which manages a user interface and acts as a "controller"
+ * for the events that occur in that GUI.
  *
  * @author  Tony Allevato
  * @version 2011.10.08
  */
 public abstract class Screen extends Activity
 {
-    //~ Instance/static variables ............................................
+    //~ Fields ................................................................
 
     private ScreenMixin mixin;
     private SofiaLayoutInflater layoutInflater;
@@ -30,7 +33,8 @@ public abstract class Screen extends Activity
 
     // ----------------------------------------------------------
     /**
-     * Initializes a new {@code Screen} object.
+     * Do not directly create instances of the {@code Screen} class; They are
+     * created for you by the operating system.
      */
     public Screen()
     {
@@ -42,11 +46,12 @@ public abstract class Screen extends Activity
 
     // ----------------------------------------------------------
     /**
-     * Called before {@link #initialize()} during the screen creation process.
+     * Called before {@code initialize()} during the screen creation process.
      * Most users typically will not need to override this method; it is
-     * intended for Sofia's own subclasses of {@link Screen} so that users can
-     * override {@link #initialize()} without being required to call the
-     * superclass implementation.
+     * intended for Sofia's own subclasses of {@link Screen} so that they can
+     * provide additional functionality before {@code initialize()}, and then
+     * users can override {@code initialize()} without being required to call
+     * the superclass implementation.
      */
     protected void beforeInitialize()
     {
@@ -75,7 +80,10 @@ public abstract class Screen extends Activity
 
     // ----------------------------------------------------------
     /**
-     * Called once the screen has been created and made visible.
+     * Called once the screen has been created and made visible. Most users
+     * will not need to override this method; it is provided so that Sofia's
+     * own {@code Screen} subclasses can do additional initialization after the
+     * user's own {@code initialize()} method has executed, if necessary.
      */
     protected void afterInitialize()
     {
@@ -111,6 +119,18 @@ public abstract class Screen extends Activity
 
     // ----------------------------------------------------------
     @Override
+    public LayoutInflater getLayoutInflater()
+    {
+    	return (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+    }
+
+
+    // ----------------------------------------------------------
+    /**
+     * This method is overridden to replace the default Android layout inflater
+     * with one that supports Sofia's enhancements.
+     */
+    @Override
     public Object getSystemService(String service)
     {
     	if (LAYOUT_INFLATER_SERVICE.equals(service))
@@ -126,6 +146,22 @@ public abstract class Screen extends Activity
     	{
     		return super.getSystemService(service);
     	}
+    }
+
+
+    // ----------------------------------------------------------
+    /**
+     * This method is called after an attempted was made to inflate the
+     * screen's layout. Most users will not need to call or override this
+     * method; it is provided for Sofia's own subclasses of {@code Screen} to
+     * support custom behavior depending on whether a user layout was provided
+     * or not.
+     * 
+     * @return true if a layout was found and inflated, otherwise false
+     */
+    protected void afterLayoutInflated(boolean inflated)
+    {
+    	// Do nothing.
     }
 
 
@@ -147,6 +183,7 @@ public abstract class Screen extends Activity
         final Object[] args = mixin.getScreenArguments(getIntent());
 
         beforeInitialize();
+        afterLayoutInflated(mixin.tryToInflateLayout());
 
         if (!doInitializeAfterLayout())
         {
@@ -209,6 +246,10 @@ public abstract class Screen extends Activity
 
 
     // ----------------------------------------------------------
+    /**
+     * Not intended to be called by users; this method is public as an
+     * implementation detail.
+     */
     public ScreenMixin getScreenMixin()
     {
     	return mixin;
@@ -307,24 +348,28 @@ public abstract class Screen extends Activity
      * Starts the activity with the specified intent. This method will not
      * return until the new activity is dismissed by the user.
      *
-     * @param intent an {@code Intent} that describes the activity to start
+     * @param intent an {@link Intent} that describes the activity to start
+     * @param returnMethod the name of the method to call when the activity
+     *     returns
      */
-    public void presentActivity(Intent intent)
+    public void presentActivity(Intent intent, String returnMethod)
     {
-        mixin.presentActivity(intent);
+        mixin.presentActivity(intent, returnMethod);
     }
 
 
     // ----------------------------------------------------------
     /**
      * Starts the activity represented by the specified {@code Screen} subclass
-     * and slides it into view. This method will not return until the new
-     * screen is dismissed by the user.
+     * and slides it into view. This method returns immediately even as the
+     * screen is being presented, but at that point a new screen has taken
+     * over the user's attention and the old one might be discarded from memory
+     * at any time. Therefore, users should typically not do any important
+     * computation after calling this method.
      *
      * @param screenClass the subclass of {@code Screen} that will be displayed
-     * @param resultClass the class that represents the type of object that
-     * @param args the arguments to be sent to the screen's {@code initialize}
-     *     method
+     * @param args the arguments to be sent to the new screen's
+     *     {@code initialize} method
      */
     public void presentScreen(
     		Class<? extends Activity> screenClass, Object... args)
@@ -350,10 +395,11 @@ public abstract class Screen extends Activity
 
     // ----------------------------------------------------------
     /**
-     * Called when a sub-activity returns yielding a result. Subclasses that
-     * override this method <b>must</b> call the superclass implementation in
-     * order to make sure that built-in methods like
-     * {@link #selectImageFromGallery()} work correctly.
+     * Called when a sub-activity returns yielding a result. Subclasses can
+     * override this method if they want to handle sub-activities in the
+     * traditional way, but they <b>must</b> call the superclass implementation
+     * in order to make sure that Sofia's built-in methods and choosers work
+     * correctly.
      *
      * @param requestCode
      * @param resultCode

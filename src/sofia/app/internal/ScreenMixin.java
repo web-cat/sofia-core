@@ -6,10 +6,10 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.WeakHashMap;
 
-import sofia.app.ActivityStarter;
 import sofia.app.OptionsMenu;
 import sofia.app.Screen;
 import sofia.app.ScreenLayout;
+import sofia.app.ActivityStarter;
 import sofia.internal.MethodDispatcher;
 import sofia.internal.ModalTask;
 import android.app.Activity;
@@ -41,9 +41,9 @@ public class ScreenMixin
 {
     //~ Instance/static variables .............................................
 
-    private static final String SCREEN_ARGUMENTS =
+    public static final String SCREEN_ARGUMENTS =
         "sofia.app.internal.ScreenMixin.arguments";
-    private static final String SCREEN_RESULT =
+    public static final String SCREEN_RESULT =
         "sofia.app.internal.ScreenMixin.result";
 
     private static final String INSTANCE_DATA =
@@ -55,17 +55,15 @@ public class ScreenMixin
     private static HashMap<Long, Object> screenResults =
         new HashMap<Long, Object>();
     
-    private static HashMap<Long, ActivityStarter> startedActivities =
-    		new HashMap<Long, ActivityStarter>();
+    private static HashMap<Long, AbsActivityStarter> startedActivities =
+    		new HashMap<Long, AbsActivityStarter>();
 
 	public static final int ACTIVITY_STARTER_REQUEST_CODE = 0x50F1A001;
 	private static final int USER_ACTIVITY_EXITED = 0x50F1A002;
 
     private Activity activity;
-    private IdTool idTool;
     private Bundle instanceData;
     private WeakHashMap<LifecycleInjection, Void> injections;
-    private ModalTask<? super Object> userActivityModalTask;
 
 
     //~ Constructors ..........................................................
@@ -80,7 +78,6 @@ public class ScreenMixin
     {
         this.activity = activity;
         this.instanceData = new Bundle();
-        this.idTool = new IdTool(activity);
         this.injections = new WeakHashMap<LifecycleInjection, Void>();
     }
 
@@ -99,13 +96,6 @@ public class ScreenMixin
     	{
     		return null;
     	}
-    }
-
-
-    // ----------------------------------------------------------
-    public IdTool getIdTool()
-    {
-    	return idTool;
     }
 
 
@@ -331,18 +321,12 @@ public class ScreenMixin
      * return until the new activity is dismissed by the user.
      *
      * @param intent an {@code Intent} that describes the activity to start
+     * @param callback the name of the method that should be called on the
+     *     previous activity when the new one returns
      */
-    public void presentActivity(final Intent intent)
+    public void presentActivity(Intent intent, String callback)
     {
-        userActivityModalTask = new ModalTask<Object>() {
-            @Override
-            protected void run()
-            {
-                activity.startActivityForResult(intent, USER_ACTIVITY_EXITED);
-            }
-        };
-
-        userActivityModalTask.executeTask();
+    	new ActivityStarter(intent, callback).start(activity);
     }
 
 
@@ -362,11 +346,7 @@ public class ScreenMixin
     public void presentScreen(
     		Class<? extends Activity> screenClass, Object... args)
     {
-        Intent intent = new Intent(activity, screenClass);
-        intent.putExtra(SCREEN_ARGUMENTS,
-            registerScreenArguments(args));
-
-        activity.startActivityForResult(intent, USER_ACTIVITY_EXITED);
+    	new ActivityStarter(screenClass, args).start(activity);
     }
 
 
@@ -390,7 +370,7 @@ public class ScreenMixin
 
 
     // ----------------------------------------------------------
-    public void startActivityForResult(ActivityStarter starter,
+    public void startActivityForResult(AbsActivityStarter starter,
     		Intent intent, int requestCode)
     {
         long timestamp = System.currentTimeMillis();
@@ -423,7 +403,7 @@ public class ScreenMixin
 	    	
 	    	if (activityCode != 0)
 	    	{
-	    		ActivityStarter starter =
+	    		AbsActivityStarter starter =
 	    				startedActivities.remove(activityCode);
 	    		
 	    		starter.handleActivityResult(
@@ -481,7 +461,7 @@ public class ScreenMixin
 
 
     // ----------------------------------------------------------
-    private static long registerScreenArguments(Object... args)
+    public static long registerScreenArguments(Object... args)
     {
         long timestamp = System.currentTimeMillis();
         screenArguments.put(timestamp, new WeakReference<Object[]>(args));
@@ -492,8 +472,13 @@ public class ScreenMixin
     // ----------------------------------------------------------
     public Object[] getScreenArguments(Intent intent)
     {
-        long timestamp = intent.getLongExtra(SCREEN_ARGUMENTS, 0);
-        WeakReference<Object[]> ref = screenArguments.get(timestamp);
+    	WeakReference<Object[]> ref = null;
+    	
+    	if (intent != null)
+    	{
+    		long timestamp = intent.getLongExtra(SCREEN_ARGUMENTS, 0);
+    		ref = screenArguments.get(timestamp);
+    	}
 
         if (ref != null)
         {
@@ -507,7 +492,7 @@ public class ScreenMixin
 
 
     // ----------------------------------------------------------
-    private static long registerScreenResult(Object result)
+    public static long registerScreenResult(Object result)
     {
         long timestamp = System.currentTimeMillis();
         screenResults.put(timestamp, result);
@@ -516,7 +501,7 @@ public class ScreenMixin
 
 
     // ----------------------------------------------------------
-    private Object takeScreenResult(Intent intent)
+    public static Object takeScreenResult(Intent intent)
     {
         if (intent != null)
         {
@@ -527,6 +512,36 @@ public class ScreenMixin
         {
             return null;
         }
+    }
+
+
+    // ----------------------------------------------------------
+    /**
+     * Search for and inflate the screen's layout, if possible. Returns true if
+     * a layout was found or false if it was not.
+     * 
+     * @return true if a layout was found, otherwise false
+     */
+    public boolean tryToInflateLayout()
+    {
+    	// Check for a @ScreenLayout annotation on the Screen subclass and
+    	// inflate the view if so; otherwise, do a smart search for a resource
+    	// based on the class name. If none is found it is assumed that the
+    	// user will call setContentView directly in initialize.
+
+    	ScreenLayout screenLayout =
+    			activity.getClass().getAnnotation(ScreenLayout.class);
+		int id = ResourceResolver.resolve(activity, screenLayout);
+		
+		if (id != 0)
+		{
+			activity.setContentView(id);
+			return true;
+		}
+		else
+		{
+			return false;
+		}
     }
 
 
@@ -546,18 +561,6 @@ public class ScreenMixin
     	// Load any persistent data saved from a previous instance of the
     	// activity.
     	PersistenceManager.getInstance().loadPersistentContext(activity);
-
-    	// Check for a @ScreenLayout annotation on the Screen subclass and
-    	// inflate the view if so; otherwise, it is assumed that the user will
-    	// call setContentView directly in initialize.
-
-    	ScreenLayout screenLayout =
-    			activity.getClass().getAnnotation(ScreenLayout.class);
-    	
-    	if (screenLayout != null)
-    	{
-    		activity.setContentView(screenLayout.value());
-    	}
 
     	// Call the initialize method.
         for (Method method : activity.getClass().getMethods())
@@ -605,7 +608,7 @@ public class ScreenMixin
 
     	if (menuAnnotation != null)
     	{
-    		int id = menuAnnotation.value();
+    		int id = ResourceResolver.resolve(activity, menuAnnotation);
     		
     		MenuInflater inflater = activity.getMenuInflater();
     		inflater.inflate(id, menu);
@@ -621,7 +624,9 @@ public class ScreenMixin
     // ----------------------------------------------------------
     public boolean onOptionsItemSelected(MenuItem item)
     {
-    	String id = getIdTool().getFieldNameForId(item.getItemId());
+    	String id = activity.getResources().getResourceEntryName(
+    			item.getItemId());
+
     	boolean called = false;
 
     	if (id != null)
