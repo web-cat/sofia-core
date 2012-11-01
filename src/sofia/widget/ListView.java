@@ -120,6 +120,16 @@ public class ListView<T> extends android.widget.ListView
 
 	// ----------------------------------------------------------
 	/**
+	 * Removes all items from the list view.
+	 */
+	public void clear()
+	{
+		list.clear();
+	}
+
+
+	// ----------------------------------------------------------
+	/**
 	 * Gets the element at the specified index from the list view.
 	 * 
 	 * @param index the index of the item to retrieve

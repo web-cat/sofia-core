@@ -120,6 +120,16 @@ public class Spinner<T> extends android.widget.Spinner
 
 	// ----------------------------------------------------------
 	/**
+	 * Removes all items from the spinner.
+	 */
+	public void clear()
+	{
+		list.clear();
+	}
+
+
+	// ----------------------------------------------------------
+	/**
 	 * Gets the element at the specified index from the spinner.
 	 * 
 	 * @param index the index of the item to retrieve
