@@ -20,14 +20,16 @@ import java.util.List;
  * this class directly unless they want to add Sofia-like decoration features
  * to other widgets that aren't yet supported.
  * 
+ * @param <E> the type of items managed by the adapter
+ * 
  * @author  Tony Allevato
  * @version 2012.09.25
  */
-public class DecoratingAdapter<T> extends BaseAdapter
+public class DecoratingAdapter<E> extends BaseAdapter
 {
 	//~ Fields ................................................................
 
-    private List<T> list;
+    private List<E> list;
     private LayoutInflater inflater;
     private int defaultViewResId;
 
@@ -36,7 +38,7 @@ public class DecoratingAdapter<T> extends BaseAdapter
 
     // ----------------------------------------------------------
     public DecoratingAdapter(Context context, int defaultViewResId,
-    		List<T> list)
+    		List<E> list)
     {
         this.list = list;
         this.inflater = (LayoutInflater) context.getSystemService(
@@ -55,7 +57,7 @@ public class DecoratingAdapter<T> extends BaseAdapter
 
 
     // ----------------------------------------------------------
-    public T getItem(int position)
+    public E getItem(int position)
     {
         return list.get(position);
     }
@@ -74,7 +76,7 @@ public class DecoratingAdapter<T> extends BaseAdapter
     	// TODO Support other means of rendering the list contents.
         View view;
 
-        T item = getItem(position);
+        E item = getItem(position);
         int resource = defaultViewResId;
 
         if (convertView == null)
@@ -107,7 +109,7 @@ public class DecoratingAdapter<T> extends BaseAdapter
     	// TODO Support other means of rendering the list contents.
         View view;
 
-        T item = getItem(position);
+        E item = getItem(position);
         int resource = android.R.layout.simple_spinner_dropdown_item;
 
         if (convertView == null)
