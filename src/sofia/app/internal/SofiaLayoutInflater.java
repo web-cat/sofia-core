@@ -56,6 +56,7 @@ public class SofiaLayoutInflater extends LayoutInflater
                 if (view != null)
                 {
                 	autoBindEvents(view, attrs);
+                	bindField(view, attrs);
                     return view;
                 }
             }
@@ -78,22 +79,21 @@ public class SofiaLayoutInflater extends LayoutInflater
     
 
     // ----------------------------------------------------------
-    protected void autoBindEvents(View view, AttributeSet attrs)
+    public static void autoBindEvents(View view, AttributeSet attrs)
     {
     	bindOnClick(view, attrs);
     	bindOnItemClick(view, attrs);
     	bindOnItemSelected(view, attrs);
     	bindOnEditingDone(view, attrs);
-    	bindField(view, attrs);
     }
     
 
     // ----------------------------------------------------------
-    private String getIdName(int id)
+    private static String getIdName(Context context, int id)
     {
     	if (id != View.NO_ID)
     	{
-    		return getContext().getResources().getResourceEntryName(id);
+    		return context.getResources().getResourceEntryName(id);
     	}
     	else
     	{
@@ -107,7 +107,7 @@ public class SofiaLayoutInflater extends LayoutInflater
     {
     	Class<?> ctxClass = getContext().getClass();
 
-		String id = getIdName(view.getId());
+		String id = getIdName(getContext(), view.getId());
 
 		if (id != null)
 		{
@@ -139,13 +139,14 @@ public class SofiaLayoutInflater extends LayoutInflater
      * @param view the view
      * @param attrs the attribute set
      */
-    private void bindOnClick(final View view, AttributeSet attrs)
+    private static void bindOnClick(final View view, AttributeSet attrs)
     {
     	if (!AdapterView.class.isAssignableFrom(view.getClass())
     			&& view.isClickable()
-    			&& attrs.getAttributeValue(ANDROID_NS, "onClick") == null)
+    			&& (attrs == null ||
+    				attrs.getAttributeValue(ANDROID_NS, "onClick") == null))
     	{
-    		final String id = getIdName(view.getId());
+    		final String id = getIdName(view.getContext(), view.getId());
 
     		if (id != null)
     		{
@@ -198,64 +199,65 @@ public class SofiaLayoutInflater extends LayoutInflater
      * @param view the view
      * @param attrs the attribute set
      */
-    private void bindOnItemClick(final View view, AttributeSet attrs)
+    private static void bindOnItemClick(final View view, AttributeSet attrs)
     {
     	if (view instanceof AbsListView)
     	{
     		AbsListView adapterView = (AbsListView) view;
 
-    		final String id = getIdName(view.getId());
+    		// Fall back to "listView" as a default handler prefix if the list
+    		// doesn't have its own ID -- this supports the automatically
+    		// created ListView on a ListScreen.
+    		String resourceId = getIdName(view.getContext(), view.getId());
+    		final String id = (resourceId != null) ? resourceId : "listView";
 
-    		if (id != null)
-    		{
-    			// TODO Optimize
-	    		final MethodDispatcher dispatcher2 =
-	    				new MethodDispatcher(id + "ItemClicked", 2);
-	    		final MethodDispatcher dispatcher1 =
-	    				new MethodDispatcher(id + "ItemClicked", 1);
+			// TODO Optimize
+    		final MethodDispatcher dispatcher2 =
+    				new MethodDispatcher(id + "ItemClicked", 2);
+    		final MethodDispatcher dispatcher1 =
+    				new MethodDispatcher(id + "ItemClicked", 1);
 
-	    		adapterView.setOnItemClickListener(
-	    				new AdapterView.OnItemClickListener() {
-					public void onItemClick(AdapterView<?> parent,
-							View view, int position, long id)
+    		adapterView.setOnItemClickListener(
+    				new AdapterView.OnItemClickListener() {
+				public void onItemClick(AdapterView<?> parent,
+						View view, int position, long id)
+				{
+					Object item = parent.getAdapter().getItem(position);
+					if (dispatcher2.supportedBy(parent.getContext(), position, item))
 					{
-						Object item = parent.getAdapter().getItem(position);
-						if (dispatcher2.supportedBy(parent.getContext(), position, item))
-						{
-							dispatcher2.callMethodOn(parent.getContext(), position, item);
-						}
-						else if (dispatcher1.supportedBy(parent.getContext(), position))
-						{
-							dispatcher1.callMethodOn(parent.getContext(), position);
-						}
-						else
-						{
-							dispatcher1.callMethodOn(parent.getContext(), item);
-						}
+						dispatcher2.callMethodOn(parent.getContext(), position, item);
 					}
-				});
-    		}
+					else if (dispatcher1.supportedBy(parent.getContext(), position))
+					{
+						dispatcher1.callMethodOn(parent.getContext(), position);
+					}
+					else
+					{
+						dispatcher1.callMethodOn(parent.getContext(), item);
+					}
+				}
+			});
     	}
     }
 
 
     // ----------------------------------------------------------
     /**
-     * This method implements the following binding rule: for each AbsListView,
-     * attach an OnItemClickListener to it that calls the context method
-     * "${id}ItemClicked", where "${id}" is the string name of the view's
+     * This method implements the following binding rule: for each AbsSpinner,
+     * attach an OnItemSelectedListener to it that calls the context method
+     * "${id}ItemSelected", where "${id}" is the string name of the view's
      * identifier.
      * 
      * @param view the view
      * @param attrs the attribute set
      */
-    private void bindOnItemSelected(final View view, AttributeSet attrs)
+    private static void bindOnItemSelected(final View view, AttributeSet attrs)
     {
     	if (view instanceof AbsSpinner)
     	{
     		AbsSpinner adapterView = (AbsSpinner) view;
 
-    		final String id = getIdName(view.getId());
+    		final String id = getIdName(view.getContext(), view.getId());
 
     		if (id != null)
     		{
@@ -308,7 +310,7 @@ public class SofiaLayoutInflater extends LayoutInflater
      * @param view the view
      * @param attrs the attribute set
      */
-    private void bindOnEditingDone(final View view, AttributeSet attrs)
+    private static void bindOnEditingDone(final View view, AttributeSet attrs)
     {
     	if (view instanceof EditText)
     	{
@@ -322,7 +324,7 @@ public class SofiaLayoutInflater extends LayoutInflater
     //~ Private listeners .....................................................
 
     // ----------------------------------------------------------
-    private final TextView.OnEditorActionListener editorActionListener =
+    private static final TextView.OnEditorActionListener editorActionListener =
     		new TextView.OnEditorActionListener()
     {
         // ----------------------------------------------------------
@@ -395,7 +397,7 @@ public class SofiaLayoutInflater extends LayoutInflater
 		 */
 		private void dispatchEvent(TextView v)
 		{
-			final String id = getIdName(v.getId());
+			final String id = getIdName(v.getContext(), v.getId());
 
     		if (id != null)
     		{
