@@ -2,8 +2,8 @@ package sofia.app;
 
 import sofia.app.internal.AbsActivityStarter;
 import sofia.app.internal.ScreenMixin;
-import sofia.internal.MethodDispatcher;
 import sofia.internal.NameUtils;
+import sofia.internal.events.EventDispatcher;
 import android.app.Activity;
 import android.content.Intent;
 
@@ -111,22 +111,21 @@ public class ActivityStarter extends AbsActivityStarter
 
 			if (resultCode == Activity.RESULT_CANCELED)
 			{
-		        MethodDispatcher dispatcher =
-		        		new MethodDispatcher(getCanceledCallback(), 0);
-		        dispatcher.callMethodOn(owner);
+		        EventDispatcher event =
+		        		new EventDispatcher(getCanceledCallback());
+		        event.dispatch(owner);
 			}
 			else
 			{
-		        MethodDispatcher dispatcher =
-		        		new MethodDispatcher(getDefaultCallback(), 1);
-		        dispatcher.callMethodOn(owner, result);
+		        EventDispatcher event =
+		        		new EventDispatcher(getDefaultCallback());
+		        event.dispatch(owner, result);
 			}
 		}
 		else
 		{
-	        MethodDispatcher dispatcher =
-	        		new MethodDispatcher(callback, 2);
-	        dispatcher.callMethodOn(owner, data, resultCode);
+			EventDispatcher event = new EventDispatcher(callback);
+	        event.dispatch(owner, data, resultCode);
 		}
 	}
 }

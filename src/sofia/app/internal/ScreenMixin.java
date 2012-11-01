@@ -6,12 +6,12 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.WeakHashMap;
 
+import sofia.app.ActivityStarter;
 import sofia.app.OptionsMenu;
 import sofia.app.Screen;
 import sofia.app.ScreenLayout;
-import sofia.app.ActivityStarter;
-import sofia.internal.MethodDispatcher;
 import sofia.internal.ModalTask;
+import sofia.internal.events.OptionalEventDispatcher;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -588,19 +588,9 @@ public class ScreenMixin
 
     	if (id != null)
     	{
-    		MethodDispatcher dispatcher1 =
-    				new MethodDispatcher(id + "Clicked", 1);
-    		MethodDispatcher dispatcher0 =
-    				new MethodDispatcher(id + "Clicked", 0);
-
-			if (dispatcher1.supportedBy(activity, item))
-			{
-				called = dispatcher1.callMethodOn(activity, item);
-			}
-			else
-			{
-				called = dispatcher0.callMethodOn(activity);
-			}
+    		OptionalEventDispatcher event =
+    				new OptionalEventDispatcher(id + "Clicked");
+    		called = event.dispatch(activity, item);
     	}
     	
     	return called;

@@ -1,6 +1,6 @@
 package sofia.app.internal;
 
-import sofia.internal.MethodDispatcher;
+import sofia.internal.events.EventDispatcher;
 import android.app.Activity;
 import android.content.Intent;
 
@@ -133,7 +133,8 @@ public abstract class AbsActivityStarter
 	 */
 	protected void invokeCallback(Activity owner, Intent data, int resultCode)
 	{
-        MethodDispatcher dispatcher = new MethodDispatcher(getCallback(), 1);
-        dispatcher.callMethodOn(owner, this);		
+		// TODO cache this?
+        EventDispatcher event = new EventDispatcher(getCallback());
+        event.dispatch(owner, this);		
 	}
 }
