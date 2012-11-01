@@ -112,7 +112,7 @@ public class ActivityStarter extends AbsActivityStarter
 			if (resultCode == Activity.RESULT_CANCELED)
 			{
 		        MethodDispatcher dispatcher =
-		        		new MethodDispatcher(getCanceledCallback(), 1);
+		        		new MethodDispatcher(getCanceledCallback(), 0);
 		        dispatcher.callMethodOn(owner);
 			}
 			else
