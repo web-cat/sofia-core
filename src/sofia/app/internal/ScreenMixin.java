@@ -59,7 +59,6 @@ public class ScreenMixin
     		new HashMap<Long, AbsActivityStarter>();
 
 	public static final int ACTIVITY_STARTER_REQUEST_CODE = 0x50F1A001;
-	private static final int USER_ACTIVITY_EXITED = 0x50F1A002;
 
     private Activity activity;
     private Bundle instanceData;
@@ -132,6 +131,16 @@ public class ScreenMixin
     	for (LifecycleInjection injection : injections.keySet())
     	{
     		injection.resume();
+    	}
+    }
+
+
+    // ----------------------------------------------------------
+    public void runDestroyInjections()
+    {
+    	for (LifecycleInjection injection : injections.keySet())
+    	{
+    		injection.destroy();
     	}
     }
 
@@ -393,70 +402,18 @@ public class ScreenMixin
     public void handleOnActivityResult(int requestCode, int resultCode,
         Intent data)
     {
-    	if (requestCode == USER_ACTIVITY_EXITED)
+    	long activityCode = instanceData.getLong("startedActivity", 0);
+    	
+    	if (activityCode != 0)
     	{
-    		// TODO callback
-    	}
-    	else
-    	{
-	    	long activityCode = instanceData.getLong("startedActivity", 0);
-	    	
-	    	if (activityCode != 0)
-	    	{
-	    		AbsActivityStarter starter =
-	    				startedActivities.remove(activityCode);
-	    		
-	    		starter.handleActivityResult(
-	    				activity, data, requestCode, resultCode);
-	    	}
-	
-	    	instanceData.remove("startedActivity");
+    		AbsActivityStarter starter =
+    				startedActivities.remove(activityCode);
+    		
+    		starter.handleActivityResult(
+    				activity, data, requestCode, resultCode);
     	}
 
-        /*if (requestCode == IMAGE_PICKED)
-        {
-            Bitmap bitmap = null;
-            
-            if (resultCode == Activity.RESULT_OK)
-            {
-                Uri uri = data.getData();
-                String path = MediaUtils.pathForMediaUri(
-                    activity.getContentResolver(), uri);
-
-                bitmap = BitmapFactory.decodeFile(path);
-            }
-
-            MethodDispatcher dispatcher = new MethodDispatcher(
-            		instanceData.getString("callback"), 1);
-            dispatcher.callMethodOn(activity, bitmap);
-        }
-        else if (requestCode == CAMERA_PICTURE_TAKEN)
-        {
-            Bitmap bitmap = null;
-
-            if (resultCode == Activity.RESULT_OK)
-            {
-                String filename = instanceData.getString("filename");
-                instanceData.remove("filename");
-
-                Uri uri = Uri.fromFile(getTempImageFile(filename));
-
-                String path = MediaUtils.pathForMediaUri(
-                    activity.getContentResolver(), uri);
-
-                bitmap = BitmapFactory.decodeFile(path);
-            }
-
-            MethodDispatcher dispatcher = new MethodDispatcher(
-            		instanceData.getString("callback"), 1);
-            dispatcher.callMethodOn(activity, bitmap);
-        }
-        else if (requestCode == USER_ACTIVITY_EXITED)
-        {
-            userActivityModalTask.endModal(takeScreenResult(data));
-        }
-        
-        instanceData.remove("callback");*/
+    	instanceData.remove("startedActivity");
     }
 
 

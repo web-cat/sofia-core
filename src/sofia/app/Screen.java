@@ -220,6 +220,33 @@ public abstract class Screen extends Activity
 
     // ----------------------------------------------------------
     @Override
+    protected void onResume()
+    {
+    	super.onResume();
+    	mixin.runResumeInjections();
+    }
+
+
+    // ----------------------------------------------------------
+    @Override
+    protected void onPause()
+    {
+    	mixin.runPauseInjections();
+    	super.onPause();
+    }
+
+
+    // ----------------------------------------------------------
+    @Override
+    protected void onDestroy()
+    {
+    	mixin.runDestroyInjections();
+    	super.onDestroy();
+    }
+
+
+    // ----------------------------------------------------------
+    @Override
     protected void onSaveInstanceState(Bundle bundle)
     {
         mixin.saveInstanceState(bundle);

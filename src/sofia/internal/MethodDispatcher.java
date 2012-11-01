@@ -1,5 +1,6 @@
 package sofia.internal;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -448,11 +449,20 @@ public class MethodDispatcher
                 Object result = m.invoke(receiver, parameters);
                 return Boolean.TRUE.equals(result);
             }
-            catch (Exception e)
+            catch (Throwable e)
             {
-                if (e instanceof RuntimeException)
+            	if (e instanceof InvocationTargetException)
+            	{
+            		e = e.getCause();
+            	}
+
+            	if (e instanceof Error)
+            	{
+            		throw (Error) e;
+            	}
+            	else if (e instanceof RuntimeException)
                 {
-                    throw (RuntimeException)e;
+                    throw (RuntimeException) e;
                 }
                 else
                 {
