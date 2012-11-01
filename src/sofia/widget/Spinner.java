@@ -1,5 +1,6 @@
 package sofia.widget;
 
+import java.util.Collection;
 import java.util.List;
 
 import sofia.util.ObservableList;
@@ -15,17 +16,17 @@ import android.util.AttributeSet;
  * that returns a {@link List} that automatically refreshes the spinner when
  * its structure is changed.
  * 
- * @param <T> the type of elements stored in the {@code Spinner}
+ * @param <E> the type of elements stored in the {@code Spinner}
  *
  * @author  Tony Allevato
  * @version 2012.09.25
  */
-public class Spinner<T> extends android.widget.Spinner
+public class Spinner<E> extends android.widget.Spinner
 {
 	//~ Fields ................................................................
 	
-	private ObservableList<T> list;
-	private DecoratingAdapter<T> adapter;
+	private ObservableList<E> list;
+	private DecoratingAdapter<E> adapter;
 
 
 	//~ Constructors ..........................................................
@@ -85,7 +86,7 @@ public class Spinner<T> extends android.widget.Spinner
 	 * 
 	 * @return the {@link List} of items managed by this spinner
 	 */
-	public List<T> getList()
+	public List<E> getList()
 	{
 		return list;
 	}
@@ -98,7 +99,7 @@ public class Spinner<T> extends android.widget.Spinner
 	 * @param item the item to add to the spinner
 	 * @return true if the item could be added, or false if it could not
 	 */
-	public boolean add(T item)
+	public boolean add(E item)
 	{
 		return list.add(item);
 	}
@@ -112,9 +113,37 @@ public class Spinner<T> extends android.widget.Spinner
 	 * @param item the item to add to the spinner
 	 * @return true if the item could be added, or false if it could not
 	 */
-	public void add(int index, T item)
+	public void add(int index, E item)
 	{
 		list.add(index, item);
+	}
+
+
+	// ----------------------------------------------------------
+	/**
+	 * Adds the items in the specified collection to the spinner.
+	 * 
+	 * @param collection the items to add to the spinner
+	 * @return  rue if the items could be added, or false if they could not
+	 */
+	public boolean addAll(Collection<? extends E> collection)
+	{
+		return list.addAll(collection);
+	}
+
+
+	// ----------------------------------------------------------
+	/**
+	 * Inserts the items in the specified collection into the spinner at the
+	 * specified index.
+	 * 
+	 * @param index the index where the new items should be inserted
+	 * @param collection the items to add to the spinner
+	 * @return true if the items could be added, or false if they could not
+	 */
+	public boolean addAll(int index, Collection<? extends E> collection)
+	{
+		return list.addAll(index, collection);
 	}
 
 
@@ -135,7 +164,7 @@ public class Spinner<T> extends android.widget.Spinner
 	 * @param index the index of the item to retrieve
 	 * @return the item at the specified index
 	 */
-	public T get(int index)
+	public E get(int index)
 	{
 		return list.get(index);
 	}
@@ -148,7 +177,7 @@ public class Spinner<T> extends android.widget.Spinner
 	 * @param index the index of the item to be removed
 	 * @return the item that was removed
 	 */
-	public T remove(int index)
+	public E remove(int index)
 	{
 		return list.remove(index);
 	}
@@ -161,7 +190,7 @@ public class Spinner<T> extends android.widget.Spinner
 	 * @param item the item to remove from the spinner
 	 * @return true if the item was found and removed, or false if it was not
 	 */
-	public boolean remove(T item)
+	public boolean remove(E item)
 	{
 		return list.remove(item);
 	}
@@ -176,7 +205,7 @@ public class Spinner<T> extends android.widget.Spinner
 	 * @param item the item to put into the spinner
 	 * @return the item previously at the specified index
 	 */
-	public T set(int index, T item)
+	public E set(int index, E item)
 	{
 		return list.set(index, item);
 	}
@@ -201,10 +230,10 @@ public class Spinner<T> extends android.widget.Spinner
 	// ----------------------------------------------------------
 	private void init()
 	{
-		list = new ObservableList<T>();
+		list = new ObservableList<E>();
 		list.addObserver(observer);
 		
-		adapter = new DecoratingAdapter<T>(getContext(),
+		adapter = new DecoratingAdapter<E>(getContext(),
 				android.R.layout.simple_spinner_item, list);
 		setAdapter(adapter);
 	}
@@ -227,7 +256,7 @@ public class Spinner<T> extends android.widget.Spinner
 		 * @param theList the list that was changed
 		 */
 		@SuppressWarnings("unused")
-		public void changeWasObserved(ObservableList<T> theList)
+		public void changeWasObserved(ObservableList<E> theList)
 		{
 			refresh();
 		}
