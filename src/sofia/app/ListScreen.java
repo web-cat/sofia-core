@@ -3,7 +3,7 @@ package sofia.app;
 import java.util.Collection;
 import java.util.List;
 
-import sofia.app.internal.SofiaLayoutInflater;
+import sofia.app.internal.EventBinder;
 import sofia.widget.ListView;
 
 // -------------------------------------------------------------------------
@@ -40,7 +40,7 @@ import sofia.widget.ListView;
  * </p>
  *
  * @param <E> the type of items that will be stored in the list
- * 
+ *
  * @author  Tony Allevato
  * @author  Last changed by $Author$
  * @version $Date$
@@ -59,28 +59,28 @@ public abstract class ListScreen<E> extends Screen
     @Override
     protected void afterLayoutInflated(boolean inflated)
     {
-    	boolean hasListView = false;
-    	
-    	if (inflated)
-    	{
-        	int listViewId = getResources().getIdentifier(
-        			"listView", "id", getPackageName());
+        boolean hasListView = false;
 
-        	if (listViewId != 0)
-        	{
-        		listView = (ListView<E>) findViewById(listViewId);
-        		hasListView = true;
-        	}
-    	}
+        if (inflated)
+        {
+            int listViewId = getResources().getIdentifier(
+                    "listView", "id", getPackageName());
 
-    	if (!hasListView)
-    	{
-    		listView = createListView(this);
-    		SofiaLayoutInflater.autoBindEvents(listView, null);
-    		setContentView(listView);
-        
-    		listView.requestFocus();
-    	}
+            if (listViewId != 0)
+            {
+                listView = (ListView<E>) findViewById(listViewId);
+                hasListView = true;
+            }
+        }
+
+        if (!hasListView)
+        {
+            listView = createListView(this);
+            EventBinder.bindEvents(listView, null);
+            setContentView(listView);
+
+            listView.requestFocus();
+        }
     }
 
 
@@ -90,13 +90,13 @@ public abstract class ListScreen<E> extends Screen
      * that will be contained by this screen.  It is provided for
      * subclass extensibility, in case a subclass of {@code ListScreen} wants
      * to use a more specialized {@code ListView} instance.
-     * 
+     *
      * @param parent The screen that will contain the view (e.g., "this")
      * @return A new {@code ListView} object to use for this screen.
      */
     protected ListView<E> createListView(ListScreen<E> parent)
     {
-   		return new ListView<E>(parent);
+           return new ListView<E>(parent);
     }
 
 
@@ -113,152 +113,152 @@ public abstract class ListScreen<E> extends Screen
     }
 
 
-	// ----------------------------------------------------------
-	/**
-	 * Gets the list of items that is managed by this list view. Changes made
-	 * to the structure of the list returned by this method (that is, adding,
-	 * removing, or replacing items) will be immediately reflected in the list
-	 * view. You only need to explicitly {@link #refresh()} the list if you
-	 * make a change to an element inside the list without directly modifying
-	 * the list itself.
-	 * 
-	 * @return the {@link List} of items managed by this list view
-	 */
-	public List<E> getList()
-	{
-		return listView.getList();
-	}
+    // ----------------------------------------------------------
+    /**
+     * Gets the list of items that is managed by this list view. Changes made
+     * to the structure of the list returned by this method (that is, adding,
+     * removing, or replacing items) will be immediately reflected in the list
+     * view. You only need to explicitly {@link #refresh()} the list if you
+     * make a change to an element inside the list without directly modifying
+     * the list itself.
+     *
+     * @return the {@link List} of items managed by this list view
+     */
+    public List<E> getList()
+    {
+        return listView.getList();
+    }
 
 
-	// ----------------------------------------------------------
-	/**
-	 * Adds an item to the list view.
-	 * 
-	 * @param item the item to add to the list view
-	 * @return true if the item could be added, or false if it could not
-	 */
-	public boolean add(E item)
-	{
-		return listView.add(item);
-	}
+    // ----------------------------------------------------------
+    /**
+     * Adds an item to the list view.
+     *
+     * @param item the item to add to the list view
+     * @return true if the item could be added, or false if it could not
+     */
+    public boolean add(E item)
+    {
+        return listView.add(item);
+    }
 
 
-	// ----------------------------------------------------------
-	/**
-	 * Inserts an item into the list view at the specified index.
-	 * 
-	 * @param index the index where the new item should be inserted
-	 * @param item the item to add to the list view
-	 * @return true if the item could be added, or false if it could not
-	 */
-	public void add(int index, E item)
-	{
-		listView.add(index, item);
-	}
+    // ----------------------------------------------------------
+    /**
+     * Inserts an item into the list view at the specified index.
+     *
+     * @param index the index where the new item should be inserted
+     * @param item the item to add to the list view
+     * @return true if the item could be added, or false if it could not
+     */
+    public void add(int index, E item)
+    {
+        listView.add(index, item);
+    }
 
 
-	// ----------------------------------------------------------
-	/**
-	 * Adds the items in the specified collection to the list view.
-	 * 
-	 * @param collection the items to add to the list view
-	 * @return  rue if the items could be added, or false if they could not
-	 */
-	public boolean addAll(Collection<? extends E> collection)
-	{
-		return listView.addAll(collection);
-	}
+    // ----------------------------------------------------------
+    /**
+     * Adds the items in the specified collection to the list view.
+     *
+     * @param collection the items to add to the list view
+     * @return  rue if the items could be added, or false if they could not
+     */
+    public boolean addAll(Collection<? extends E> collection)
+    {
+        return listView.addAll(collection);
+    }
 
 
-	// ----------------------------------------------------------
-	/**
-	 * Inserts the items in the specified collection into the list view at the
-	 * specified index.
-	 * 
-	 * @param index the index where the new items should be inserted
-	 * @param collection the items to add to the list view
-	 * @return true if the items could be added, or false if they could not
-	 */
-	public boolean addAll(int index, Collection<? extends E> collection)
-	{
-		return listView.addAll(index, collection);
-	}
+    // ----------------------------------------------------------
+    /**
+     * Inserts the items in the specified collection into the list view at the
+     * specified index.
+     *
+     * @param index the index where the new items should be inserted
+     * @param collection the items to add to the list view
+     * @return true if the items could be added, or false if they could not
+     */
+    public boolean addAll(int index, Collection<? extends E> collection)
+    {
+        return listView.addAll(index, collection);
+    }
 
 
-	// ----------------------------------------------------------
-	/**
-	 * Removes all items from the list view.
-	 */
-	public void clear()
-	{
-		listView.clear();
-	}
+    // ----------------------------------------------------------
+    /**
+     * Removes all items from the list view.
+     */
+    public void clear()
+    {
+        listView.clear();
+    }
 
 
-	// ----------------------------------------------------------
-	/**
-	 * Gets the element at the specified index from the list view.
-	 * 
-	 * @param index the index of the item to retrieve
-	 * @return the item at the specified index
-	 */
-	public E get(int index)
-	{
-		return listView.get(index);
-	}
+    // ----------------------------------------------------------
+    /**
+     * Gets the element at the specified index from the list view.
+     *
+     * @param index the index of the item to retrieve
+     * @return the item at the specified index
+     */
+    public E get(int index)
+    {
+        return listView.get(index);
+    }
 
 
-	// ----------------------------------------------------------
-	/**
-	 * Removes the item at the specified index from the list view.
-	 * 
-	 * @param index the index of the item to be removed
-	 * @return the item that was removed
-	 */
-	public E remove(int index)
-	{
-		return listView.remove(index);
-	}
+    // ----------------------------------------------------------
+    /**
+     * Removes the item at the specified index from the list view.
+     *
+     * @param index the index of the item to be removed
+     * @return the item that was removed
+     */
+    public E remove(int index)
+    {
+        return listView.remove(index);
+    }
 
 
-	// ----------------------------------------------------------
-	/**
-	 * Removes the specified item from the list view.
-	 * 
-	 * @param item the item to remove from the list view
-	 * @return true if the item was found and removed, or false if it was not
-	 */
-	public boolean remove(E item)
-	{
-		return listView.remove(item);
-	}
+    // ----------------------------------------------------------
+    /**
+     * Removes the specified item from the list view.
+     *
+     * @param item the item to remove from the list view
+     * @return true if the item was found and removed, or false if it was not
+     */
+    public boolean remove(E item)
+    {
+        return listView.remove(item);
+    }
 
 
-	// ----------------------------------------------------------
-	/**
-	 * Replaces the element at the specified index from the list view with
-	 * another item.
-	 * 
-	 * @param index the index of the item to retrieve
-	 * @param item the item to put into the list
-	 * @return the item previously at the specified index
-	 */
-	public E set(int index, E item)
-	{
-		return listView.set(index, item);
-	}
+    // ----------------------------------------------------------
+    /**
+     * Replaces the element at the specified index from the list view with
+     * another item.
+     *
+     * @param index the index of the item to retrieve
+     * @param item the item to put into the list
+     * @return the item previously at the specified index
+     */
+    public E set(int index, E item)
+    {
+        return listView.set(index, item);
+    }
 
 
-	// ----------------------------------------------------------
-	/**
-	 * Refreshes the list view to update its contents from the list it manages.
-	 * This method does not need to be called after methods like {@code add}
-	 * or {@code remove} -- it only needs to be called if you change a property
-	 * of one of the elements in the list (for example, by calling a setter)
-	 * without modifying the structure of the list itself.
-	 */
-	public void refresh()
-	{
-		listView.refresh();
-	}
+    // ----------------------------------------------------------
+    /**
+     * Refreshes the list view to update its contents from the list it manages.
+     * This method does not need to be called after methods like {@code add}
+     * or {@code remove} -- it only needs to be called if you change a property
+     * of one of the elements in the list (for example, by calling a setter)
+     * without modifying the structure of the list itself.
+     */
+    public void refresh()
+    {
+        listView.refresh();
+    }
 }

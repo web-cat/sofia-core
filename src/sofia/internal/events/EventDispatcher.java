@@ -20,14 +20,14 @@ import java.util.WeakHashMap;
  */
 public class EventDispatcher
 {
-	//~ Fields ................................................................
+    //~ Fields ................................................................
 
-	// The name of the method that this dispatcher calls.
-	private String methodName;
+    // The name of the method that this dispatcher calls.
+    private String methodName;
 
-	// A cache of matching method transformers for a particular class.
-	private WeakHashMap<CacheKey,
-		List<MethodTransformer>> transformerCache;
+    // A cache of matching method transformers for a particular class.
+    private WeakHashMap<CacheKey,
+        List<MethodTransformer>> transformerCache;
 
     private static final Map<Class<?>, Class<?>> wrapperEquivalent =
             new HashMap<Class<?>, Class<?>>();
@@ -51,135 +51,128 @@ public class EventDispatcher
     }
 
 
-	//~ Constructors ..........................................................
+    //~ Constructors ..........................................................
 
-	// ----------------------------------------------------------
+    // ----------------------------------------------------------
     /**
      * Creates a new event dispatcher with the specified method name.
-     * 
+     *
      * @param method the name of the method that this dispatcher will call
      */
-	public EventDispatcher(String method)
-	{
-		methodName = method;
-		transformerCache =
-				new WeakHashMap<CacheKey, List<MethodTransformer>>();
-	}
-	
-	
-	//~ Public methods ........................................................
-
-	// ----------------------------------------------------------
-	/**
-	 * Gets a value indicating whether a receiver has a method that satisfies
-	 * this dispatcher, given the specified arguments.
-	 * 
-	 * @param receiver the receiver of the method call
-	 * @param args the arguments that would be passed to the method
-	 * @return true if the receiver has a method that satisfies this
-	 *     dispatcher, otherwise false
-	 */
-	public boolean isSupportedBy(Object receiver, Object... args)
-	{
-		List<MethodTransformer> transformers =
-				getMethodTransformers(receiver, args);
-		
-		return !transformers.isEmpty();
-	}
+    public EventDispatcher(String method)
+    {
+        methodName = method;
+        transformerCache =
+                new WeakHashMap<CacheKey, List<MethodTransformer>>();
+    }
 
 
-	// ----------------------------------------------------------
-	/**
-	 * Dispatches the event to the specified receiver, walking up the
-	 * containment hierarchy as needed to notify parents of the event.
-	 * 
-	 * @param receiver the receiver of the method call
-	 * @param args the arguments that would be passed to the method
-	 * @return true if the event was successfully dispatched to some object up
-	 *     the containment hierarchy; false if it was handled nowhere
-	 */
-	public boolean dispatch(Object receiver, Object... args)
-	{
-		List<MethodTransformer> transformers =
-				getMethodTransformers(receiver, args);
+    //~ Public methods ........................................................
 
-		if (!transformers.isEmpty())
-		{
-			boolean executedAny = false;
+    // ----------------------------------------------------------
+    /**
+     * Gets a value indicating whether a receiver has a method that satisfies
+     * this dispatcher, given the specified arguments.
+     *
+     * @param receiver the receiver of the method call
+     * @param args the arguments that would be passed to the method
+     * @return true if the receiver has a method that satisfies this
+     *     dispatcher, otherwise false
+     */
+    public boolean isSupportedBy(Object receiver, Object... args)
+    {
+        List<MethodTransformer> transformers =
+                getMethodTransformers(receiver, args);
 
-			for (MethodTransformer transformer : transformers)
-			{
-				Object result = invokeTransformer(transformer, receiver, args);
-				executedAny = true;
-
-				if (Boolean.TRUE.equals(result))
-				{
-					return true;
-				}
-			}
-			
-			return executedAny;
-		}
-		else
-		{
-			return false;
-		}
-	}
-	
-
-	// ----------------------------------------------------------
-	/**
-	 * Transforms an argument list using the specified transformer and invokes
-	 * the method. This is a hook where subclasses can override the logic, if
-	 * necessary.
-	 * 
-	 * @param transformer the transformer
-	 * @param receiver the receiving object
-	 * @param args the arguments to the method
-	 * @return the result of invoking the method
-	 */
-	protected Object invokeTransformer(MethodTransformer transformer,
-			Object receiver, Object... args)
-	{
-		return transformer.invoke(receiver, args);		
-	}
+        return !transformers.isEmpty();
+    }
 
 
-	// ----------------------------------------------------------
-	/**
-	 * TODO document
-	 * 
-	 * @param receiver
-	 * @param argTypes
-	 * @return
-	 */
-	protected List<MethodTransformer> lookupTransformers(
-			Object receiver, List<Class<?>> argTypes)
-	{
-		List<MethodTransformer> transformers =
-				new ArrayList<MethodTransformer>();
-		
-		Method method = lookupMethod(receiver, argTypes);
-		if (method != null)
-		{
-			MethodTransformer identity = new MethodTransformer(
-					Arrays.asList(method.getParameterTypes()));
-			identity.method = method;
-			transformers.add(identity);
-		}
-		
-		return transformers;
-	}
-	
-	
-	// ------------------------------------------------------
-	protected Method lookupMethod(Object receiver, List<Class<?>> argTypes)
-	{
-		//System.out.println("Looking for "
-		//		+ receiver.getClass().getCanonicalName() + "."
-		//		+ methodName + "(" + argTypes.toString() + ")...");
-		
-		Class<?> clazz = receiver.getClass();
+    // ----------------------------------------------------------
+    /**
+     * Dispatches the event to the specified receiver, walking up the
+     * containment hierarchy as needed to notify parents of the event.
+     *
+     * @param receiver the receiver of the method call
+     * @param args the arguments that would be passed to the method
+     * @return true if the event should not be dispatched further (because one
+     *      of the handlers returned true), false if dispatch should continue
+     */
+    public boolean dispatch(Object receiver, Object... args)
+    {
+        List<MethodTransformer> transformers =
+                getMethodTransformers(receiver, args);
+
+        if (!transformers.isEmpty())
+        {
+            for (MethodTransformer transformer : transformers)
+            {
+                Object result = invokeTransformer(transformer, receiver, args);
+
+                if (Boolean.TRUE.equals(result))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+
+    // ----------------------------------------------------------
+    /**
+     * Transforms an argument list using the specified transformer and invokes
+     * the method. This is a hook where subclasses can override the logic, if
+     * necessary.
+     *
+     * @param transformer the transformer
+     * @param receiver the receiving object
+     * @param args the arguments to the method
+     * @return the result of invoking the method
+     */
+    protected Object invokeTransformer(MethodTransformer transformer,
+            Object receiver, Object... args)
+    {
+        return transformer.invoke(receiver, args);
+    }
+
+
+    // ----------------------------------------------------------
+    /**
+     * TODO document
+     *
+     * @param receiver
+     * @param argTypes
+     * @return
+     */
+    protected List<MethodTransformer> lookupTransformers(
+            Object receiver, List<Class<?>> argTypes)
+    {
+        List<MethodTransformer> transformers =
+                new ArrayList<MethodTransformer>();
+
+        Method method = lookupMethod(receiver, argTypes);
+        if (method != null)
+        {
+            MethodTransformer identity = new MethodTransformer(
+                    Arrays.asList(method.getParameterTypes()));
+            identity.method = method;
+            transformers.add(identity);
+        }
+
+        return transformers;
+    }
+
+
+    // ------------------------------------------------------
+    protected Method lookupMethod(Object receiver, List<Class<?>> argTypes)
+    {
+        //System.out.println("Looking for "
+        //		+ receiver.getClass().getCanonicalName() + "."
+        //		+ methodName + "(" + argTypes.toString() + ")...");
+
+        Class<?> clazz = receiver.getClass();
         Method bestMatch = null;
         int[] bestScore = new int[argTypes.size()];
         int[] nextScore = new int[argTypes.size()];
@@ -192,8 +185,8 @@ public class EventDispatcher
                 {
                     try
                     {
-                    	//System.out.println("   checking "
-                    	//    + candidate.toGenericString());
+                        //System.out.println("   checking "
+                        //    + candidate.toGenericString());
 
                         // Check this method and leave results in nextScore
                         scoreMethod(candidate, argTypes, nextScore);
@@ -220,50 +213,50 @@ public class EventDispatcher
 
             clazz = clazz.getSuperclass();
         }
-        
+
         if (bestMatch != null)
         {
-			//System.out.println("   ...found!");
+            //System.out.println("   ...found!");
         }
 
         return bestMatch;
-	}
-	
-	
-	// ----------------------------------------------------------
-	private List<Class<?>> classesForObjects(Object... objects)
-	{
-		List<Class<?>> types = new ArrayList<Class<?>>(objects.length);
-
-		for (int i = 0; i < objects.length; i++)
-		{
-			types.add(objects[i].getClass());
-		}
-		
-		return types;
-	}
+    }
 
 
-	// ----------------------------------------------------------
-	private List<MethodTransformer> getMethodTransformers(Object receiver,
-			Object... args)
-	{
-		List<MethodTransformer> transformers = null;
-		CacheKey key = new CacheKey(receiver, args);
+    // ----------------------------------------------------------
+    private List<Class<?>> classesForObjects(Object... objects)
+    {
+        List<Class<?>> types = new ArrayList<Class<?>>(objects.length);
 
-		if (!transformerCache.containsKey(key))
-		{
-			transformers = lookupTransformers(
-					receiver, key.getParameterTypes());
-			transformerCache.put(key, transformers);
-		}
-		else
-		{
-			transformers = transformerCache.get(key);
-		}
-		
-		return transformers;
-	}
+        for (int i = 0; i < objects.length; i++)
+        {
+            types.add(objects[i].getClass());
+        }
+
+        return types;
+    }
+
+
+    // ----------------------------------------------------------
+    private List<MethodTransformer> getMethodTransformers(Object receiver,
+            Object... args)
+    {
+        List<MethodTransformer> transformers = null;
+        CacheKey key = new CacheKey(receiver, args);
+
+        if (!transformerCache.containsKey(key))
+        {
+            transformers = lookupTransformers(
+                    receiver, key.getParameterTypes());
+            transformerCache.put(key, transformers);
+        }
+        else
+        {
+            transformers = transformerCache.get(key);
+        }
+
+        return transformers;
+    }
 
 
     // ----------------------------------------------------------
@@ -379,182 +372,182 @@ public class EventDispatcher
 
     //~ Inner classes .........................................................
 
-	// ------------------------------------------------------
+    // ------------------------------------------------------
     /**
      * Subclasses of {@code EventDispatcher} should subclass this internally in
      * order to support multiple method signatures.
      */
-	protected class MethodTransformer
-	{
-		//~ Fields ............................................................
-		
-		protected List<Class<?>> argTypes;
-		protected Method method;
+    protected class MethodTransformer
+    {
+        //~ Fields ............................................................
+
+        protected List<Class<?>> argTypes;
+        protected Method method;
 
 
-		//~ Constructors ......................................................
+        //~ Constructors ......................................................
 
-		// ------------------------------------------------------
-		public MethodTransformer(Class<?>... argTypes)
-		{
-			this(Arrays.asList(argTypes));
-		}
-
-
-		// ------------------------------------------------------
-		public MethodTransformer(List<Class<?>> argTypes)
-		{
-			this.argTypes = argTypes;
-		}
+        // ------------------------------------------------------
+        public MethodTransformer(Class<?>... argTypes)
+        {
+            this(Arrays.asList(argTypes));
+        }
 
 
-		//~ Methods ...........................................................
-
-		// ------------------------------------------------------
-		public void addIfSupportedBy(Object receiver,
-				List<MethodTransformer> transformers)
-		{
-			method = lookupMethod(receiver, argTypes);
-			
-			if (method != null)
-			{
-				transformers.add(this);
-			}
-		}
+        // ------------------------------------------------------
+        public MethodTransformer(List<Class<?>> argTypes)
+        {
+            this.argTypes = argTypes;
+        }
 
 
-		// ------------------------------------------------------
-		public boolean isCompatible(Object... args)
-		{
-			//System.out.println("---\nChecking compat of " + argTypes
-			//		+ " and " + Arrays.toString(args));
+        //~ Methods ...........................................................
 
-			if (args.length != argTypes.size())
-			{
-				//System.out.println("   Not the same number.");
-				return false;
-			}
-			else
-			{
-				for (int i = 0; i < args.length; i++)
-				{
-					Class<?> formal = argTypes.get(i);
-					Class<?> actual = args[i].getClass();
-					
-					if (!formal.isAssignableFrom(actual))
-					{
-						//System.out.println("   Not compatible.");
-						return false;
-					}
-				}
-				
-				//System.out.println("   Compatible.");
-				return true;
-			}
-		}
+        // ------------------------------------------------------
+        public void addIfSupportedBy(Object receiver,
+                List<MethodTransformer> transformers)
+        {
+            method = lookupMethod(receiver, argTypes);
+
+            if (method != null)
+            {
+                transformers.add(this);
+            }
+        }
 
 
-		// ------------------------------------------------------
-		public Object invoke(Object receiver, Object... args)
-		{
-			try
-			{
-				//System.out.println("Invoking " + method.toGenericString()
-				//    + " with " + Arrays.toString(args));
-				return method.invoke(receiver, transform(args));
-			}
-			catch (InvocationTargetException e)
-			{
-				Throwable cause = e.getCause();
+        // ------------------------------------------------------
+        public boolean isCompatible(Object... args)
+        {
+            //System.out.println("---\nChecking compat of " + argTypes
+            //		+ " and " + Arrays.toString(args));
 
-				if (cause instanceof Error)
-				{
-					throw (Error) cause;
-				}
-				else if (cause instanceof RuntimeException)
-				{
-					throw (RuntimeException) cause;
-				}
-				else
-				{
-					throw new RuntimeException(cause);
-				}
-			}
-			catch (IllegalAccessException e)
-			{
-				throw new RuntimeException(e);
-			}
-		}
-		
-		
-		// ----------------------------------------------------------
-		/**
-		 * Transforms the specified argument list to one that will be passed to
-		 * the handler method. By default, it returns the same argument list.
-		 * Override this to transform the arguments (such as from a MotionEvent
-		 * to floats for x/y).
-		 * 
-		 * @param args the arguments
-		 * @return the transformed argument list
-		 */
-		protected Object[] transform(Object... args)
-		{
-			return args;
-		}
-	}
-	
+            if (args.length != argTypes.size())
+            {
+                //System.out.println("   Not the same number.");
+                return false;
+            }
+            else
+            {
+                for (int i = 0; i < args.length; i++)
+                {
+                    Class<?> formal = argTypes.get(i);
+                    Class<?> actual = args[i].getClass();
 
-	// ----------------------------------------------------------
-	private class CacheKey
-	{
-		private Class<?> receiverType;
-		private List<Class<?>> argTypes;
-		
+                    if (!formal.isAssignableFrom(actual))
+                    {
+                        //System.out.println("   Not compatible.");
+                        return false;
+                    }
+                }
 
-		// ----------------------------------------------------------
-		public CacheKey(Object receiver, Object... args)
-		{
-			receiverType = receiver.getClass();
-			argTypes = classesForObjects(args);
-		}
+                //System.out.println("   Compatible.");
+                return true;
+            }
+        }
 
 
-		// ----------------------------------------------------------
-		@SuppressWarnings("unused")
-		public Class<?> getReceiverType()
-		{
-			return receiverType;
-		}
-		
+        // ------------------------------------------------------
+        public Object invoke(Object receiver, Object... args)
+        {
+            try
+            {
+                //System.out.println("Invoking " + method.toGenericString()
+                //    + " with " + Arrays.toString(args));
+                return method.invoke(receiver, transform(args));
+            }
+            catch (InvocationTargetException e)
+            {
+                Throwable cause = e.getCause();
 
-		// ----------------------------------------------------------
-		public List<Class<?>> getParameterTypes()
-		{
-			return argTypes;
-		}
+                if (cause instanceof Error)
+                {
+                    throw (Error) cause;
+                }
+                else if (cause instanceof RuntimeException)
+                {
+                    throw (RuntimeException) cause;
+                }
+                else
+                {
+                    throw new RuntimeException(cause);
+                }
+            }
+            catch (IllegalAccessException e)
+            {
+                throw new RuntimeException(e);
+            }
+        }
 
 
-		// ----------------------------------------------------------
-		public boolean equals(Object other)
-		{
-			if (other instanceof CacheKey)
-			{
-				CacheKey otherMethod = (CacheKey) other;
-				
-				return receiverType.equals(otherMethod.receiverType) &&
-						argTypes.equals(otherMethod.argTypes);
-			}
-			else
-			{
-				return false;
-			}
-		}
-		
+        // ----------------------------------------------------------
+        /**
+         * Transforms the specified argument list to one that will be passed to
+         * the handler method. By default, it returns the same argument list.
+         * Override this to transform the arguments (such as from a MotionEvent
+         * to floats for x/y).
+         *
+         * @param args the arguments
+         * @return the transformed argument list
+         */
+        protected Object[] transform(Object... args)
+        {
+            return args;
+        }
+    }
 
-		// ----------------------------------------------------------
-		public int hashCode()
-		{
-			return receiverType.hashCode() ^ (argTypes.hashCode() << 13);
-		}
-	}
+
+    // ----------------------------------------------------------
+    private class CacheKey
+    {
+        private Class<?> receiverType;
+        private List<Class<?>> argTypes;
+
+
+        // ----------------------------------------------------------
+        public CacheKey(Object receiver, Object... args)
+        {
+            receiverType = receiver.getClass();
+            argTypes = classesForObjects(args);
+        }
+
+
+        // ----------------------------------------------------------
+        @SuppressWarnings("unused")
+        public Class<?> getReceiverType()
+        {
+            return receiverType;
+        }
+
+
+        // ----------------------------------------------------------
+        public List<Class<?>> getParameterTypes()
+        {
+            return argTypes;
+        }
+
+
+        // ----------------------------------------------------------
+        public boolean equals(Object other)
+        {
+            if (other instanceof CacheKey)
+            {
+                CacheKey otherMethod = (CacheKey) other;
+
+                return receiverType.equals(otherMethod.receiverType) &&
+                        argTypes.equals(otherMethod.argTypes);
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+
+        // ----------------------------------------------------------
+        public int hashCode()
+        {
+            return receiverType.hashCode() ^ (argTypes.hashCode() << 13);
+        }
+    }
 }

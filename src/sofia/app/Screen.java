@@ -121,7 +121,7 @@ public abstract class Screen extends Activity
     @Override
     public LayoutInflater getLayoutInflater()
     {
-    	return (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        return (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
     }
 
 
@@ -133,19 +133,21 @@ public abstract class Screen extends Activity
     @Override
     public Object getSystemService(String service)
     {
-    	if (LAYOUT_INFLATER_SERVICE.equals(service))
-    	{
-    		if (layoutInflater == null)
-    		{
-    			layoutInflater = new SofiaLayoutInflater(this);
-    		}
-    		
-    		return layoutInflater;
-    	}
-    	else
-    	{
-    		return super.getSystemService(service);
-    	}
+        if (LAYOUT_INFLATER_SERVICE.equals(service))
+        {
+            if (layoutInflater == null)
+            {
+                LayoutInflater inflater =
+                        (LayoutInflater) super.getSystemService(service);
+                layoutInflater = new SofiaLayoutInflater(inflater, this);
+            }
+
+            return layoutInflater;
+        }
+        else
+        {
+            return super.getSystemService(service);
+        }
     }
 
 
@@ -156,12 +158,12 @@ public abstract class Screen extends Activity
      * method; it is provided for Sofia's own subclasses of {@code Screen} to
      * support custom behavior depending on whether a user layout was provided
      * or not.
-     * 
+     *
      * @return true if a layout was found and inflated, otherwise false
      */
     protected void afterLayoutInflated(boolean inflated)
     {
-    	// Do nothing.
+        // Do nothing.
     }
 
 
@@ -213,8 +215,8 @@ public abstract class Screen extends Activity
     @Override
     protected void onStop()
     {
-    	PersistenceManager.getInstance().savePersistentContext(this);
-    	super.onStop();
+        PersistenceManager.getInstance().savePersistentContext(this);
+        super.onStop();
     }
 
 
@@ -222,8 +224,8 @@ public abstract class Screen extends Activity
     @Override
     protected void onResume()
     {
-    	super.onResume();
-    	mixin.runResumeInjections();
+        super.onResume();
+        mixin.runResumeInjections();
     }
 
 
@@ -231,8 +233,8 @@ public abstract class Screen extends Activity
     @Override
     protected void onPause()
     {
-    	mixin.runPauseInjections();
-    	super.onPause();
+        mixin.runPauseInjections();
+        super.onPause();
     }
 
 
@@ -240,8 +242,8 @@ public abstract class Screen extends Activity
     @Override
     protected void onDestroy()
     {
-    	mixin.runDestroyInjections();
-    	super.onDestroy();
+        mixin.runDestroyInjections();
+        super.onDestroy();
     }
 
 
@@ -258,8 +260,8 @@ public abstract class Screen extends Activity
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
-    	return mixin.onCreateOptionsMenu(menu)
-    			|| super.onCreateOptionsMenu(menu);
+        return mixin.onCreateOptionsMenu(menu)
+                || super.onCreateOptionsMenu(menu);
     }
 
 
@@ -267,8 +269,8 @@ public abstract class Screen extends Activity
     @Override
     public boolean onOptionsItemSelected(MenuItem item)
     {
-    	return mixin.onOptionsItemSelected(item)
-    			|| super.onOptionsItemSelected(item);
+        return mixin.onOptionsItemSelected(item)
+                || super.onOptionsItemSelected(item);
     }
 
 
@@ -279,7 +281,7 @@ public abstract class Screen extends Activity
      */
     public ScreenMixin getScreenMixin()
     {
-    	return mixin;
+        return mixin;
     }
 
 
@@ -399,7 +401,7 @@ public abstract class Screen extends Activity
      *     {@code initialize} method
      */
     public void presentScreen(
-    		Class<? extends Activity> screenClass, Object... args)
+            Class<? extends Activity> screenClass, Object... args)
     {
         mixin.presentScreen(screenClass, args);
     }
