@@ -157,7 +157,7 @@ public class EventDispatcher
         {
             MethodTransformer identity = new MethodTransformer(
                     Arrays.asList(method.getParameterTypes()));
-            identity.method = method;
+            identity.methodCache.put(receiver.getClass(), method);
             transformers.add(identity);
         }
 
@@ -381,8 +381,8 @@ public class EventDispatcher
     {
         //~ Fields ............................................................
 
-        protected List<Class<?>> argTypes;
-        protected Method method;
+        protected final List<Class<?>> argTypes;
+        protected final Map<Class<?>, Method> methodCache;
 
 
         //~ Constructors ......................................................
@@ -398,6 +398,7 @@ public class EventDispatcher
         public MethodTransformer(List<Class<?>> argTypes)
         {
             this.argTypes = argTypes;
+            this.methodCache = new HashMap<Class<?>, Method>();
         }
 
 
@@ -407,10 +408,11 @@ public class EventDispatcher
         public void addIfSupportedBy(Object receiver,
                 List<MethodTransformer> transformers)
         {
-            method = lookupMethod(receiver, argTypes);
+            Method method = lookupMethod(receiver, argTypes);
 
             if (method != null)
             {
+                methodCache.put(receiver.getClass(), method);
                 transformers.add(this);
             }
         }
@@ -454,7 +456,8 @@ public class EventDispatcher
             {
                 //System.out.println("Invoking " + method.toGenericString()
                 //    + " with " + Arrays.toString(args));
-                return method.invoke(receiver, transform(args));
+                return methodCache.get(receiver.getClass()).invoke(
+                        receiver, transform(args));
             }
             catch (InvocationTargetException e)
             {
