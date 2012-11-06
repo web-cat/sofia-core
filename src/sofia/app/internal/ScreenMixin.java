@@ -54,11 +54,11 @@ public class ScreenMixin
 
     private static HashMap<Long, Object> screenResults =
         new HashMap<Long, Object>();
-    
-    private static HashMap<Long, AbsActivityStarter> startedActivities =
-    		new HashMap<Long, AbsActivityStarter>();
 
-	public static final int ACTIVITY_STARTER_REQUEST_CODE = 0x50F1A001;
+    private static HashMap<Long, AbsActivityStarter> startedActivities =
+            new HashMap<Long, AbsActivityStarter>();
+
+    public static final int ACTIVITY_STARTER_REQUEST_CODE = 0x50F1A001;
 
     private Activity activity;
     private Bundle instanceData;
@@ -86,86 +86,104 @@ public class ScreenMixin
     // ----------------------------------------------------------
     public static ScreenMixin getMixin(Context context)
     {
-    	try
-    	{
-    		Method method = context.getClass().getMethod("getScreenMixin");
-    		return (ScreenMixin) method.invoke(context);
-    	}
-    	catch (Exception e)
-    	{
-    		return null;
-    	}
+        try
+        {
+            Method method = context.getClass().getMethod("getScreenMixin");
+            return (ScreenMixin) method.invoke(context);
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
+    }
+
+
+    // ----------------------------------------------------------
+    public static boolean tryToAddLifecycleInjection(
+            Context context, LifecycleInjection injection)
+    {
+        ScreenMixin mixin = getMixin(context);
+
+        if (mixin != null)
+        {
+            mixin.addLifecycleInjection(injection);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
 
     // ----------------------------------------------------------
     public void addLifecycleInjection(LifecycleInjection injection)
     {
-    	if (!injections.containsKey(injection))
-    	{
-    		injections.put(injection, null);
-    	}
+        if (!injections.containsKey(injection))
+        {
+            injections.put(injection, null);
+        }
     }
 
 
     // ----------------------------------------------------------
     public void removeLifecycleInjection(LifecycleInjection injection)
     {
-   		injections.remove(injection);
+           injections.remove(injection);
     }
 
 
     // ----------------------------------------------------------
     public void runPauseInjections()
     {
-    	for (LifecycleInjection injection : injections.keySet())
-    	{
-    		injection.pause();
-    	}
+        for (LifecycleInjection injection : injections.keySet())
+        {
+            injection.pause();
+        }
     }
 
 
     // ----------------------------------------------------------
     public void runResumeInjections()
     {
-    	for (LifecycleInjection injection : injections.keySet())
-    	{
-    		injection.resume();
-    	}
+        for (LifecycleInjection injection : injections.keySet())
+        {
+            injection.resume();
+        }
     }
 
 
     // ----------------------------------------------------------
     public void runDestroyInjections()
     {
-    	for (LifecycleInjection injection : injections.keySet())
-    	{
-    		injection.destroy();
-    	}
+        for (LifecycleInjection injection : injections.keySet())
+        {
+            injection.destroy();
+        }
     }
 
 
     // ----------------------------------------------------------
     public Bundle getInstanceData()
     {
-    	return instanceData;
+        return instanceData;
     }
 
 
     // ----------------------------------------------------------
     public void saveInstanceState(Bundle bundle)
     {
-    	bundle.putBundle(INSTANCE_DATA, instanceData);
+        bundle.putBundle(INSTANCE_DATA, instanceData);
     }
 
 
     // ----------------------------------------------------------
     public void restoreInstanceState(Bundle bundle)
     {
-    	if (bundle != null)
-    	{
-    		instanceData = bundle.getBundle(INSTANCE_DATA);
-    	}
+        if (bundle != null)
+        {
+            instanceData = bundle.getBundle(INSTANCE_DATA);
+        }
     }
 
 
@@ -335,7 +353,7 @@ public class ScreenMixin
      */
     public void presentActivity(Intent intent, String callback)
     {
-    	new ActivityStarter(intent, callback).start(activity);
+        new ActivityStarter(intent, callback).start(activity);
     }
 
 
@@ -353,9 +371,9 @@ public class ScreenMixin
      * @return
      */
     public void presentScreen(
-    		Class<? extends Activity> screenClass, Object... args)
+            Class<? extends Activity> screenClass, Object... args)
     {
-    	new ActivityStarter(screenClass, args).start(activity);
+        new ActivityStarter(screenClass, args).start(activity);
     }
 
 
@@ -380,13 +398,13 @@ public class ScreenMixin
 
     // ----------------------------------------------------------
     public void startActivityForResult(AbsActivityStarter starter,
-    		Intent intent, int requestCode)
+            Intent intent, int requestCode)
     {
         long timestamp = System.currentTimeMillis();
         startedActivities.put(timestamp, starter);
         instanceData.putLong("startedActivity", timestamp);
 
-    	activity.startActivityForResult(intent, requestCode);
+        activity.startActivityForResult(intent, requestCode);
     }
 
 
@@ -402,18 +420,18 @@ public class ScreenMixin
     public void handleOnActivityResult(int requestCode, int resultCode,
         Intent data)
     {
-    	long activityCode = instanceData.getLong("startedActivity", 0);
-    	
-    	if (activityCode != 0)
-    	{
-    		AbsActivityStarter starter =
-    				startedActivities.remove(activityCode);
-    		
-    		starter.handleActivityResult(
-    				activity, data, requestCode, resultCode);
-    	}
+        long activityCode = instanceData.getLong("startedActivity", 0);
 
-    	instanceData.remove("startedActivity");
+        if (activityCode != 0)
+        {
+            AbsActivityStarter starter =
+                    startedActivities.remove(activityCode);
+
+            starter.handleActivityResult(
+                    activity, data, requestCode, resultCode);
+        }
+
+        instanceData.remove("startedActivity");
     }
 
 
@@ -429,13 +447,13 @@ public class ScreenMixin
     // ----------------------------------------------------------
     public Object[] getScreenArguments(Intent intent)
     {
-    	WeakReference<Object[]> ref = null;
-    	
-    	if (intent != null)
-    	{
-    		long timestamp = intent.getLongExtra(SCREEN_ARGUMENTS, 0);
-    		ref = screenArguments.get(timestamp);
-    	}
+        WeakReference<Object[]> ref = null;
+
+        if (intent != null)
+        {
+            long timestamp = intent.getLongExtra(SCREEN_ARGUMENTS, 0);
+            ref = screenArguments.get(timestamp);
+        }
 
         if (ref != null)
         {
@@ -476,29 +494,29 @@ public class ScreenMixin
     /**
      * Search for and inflate the screen's layout, if possible. Returns true if
      * a layout was found or false if it was not.
-     * 
+     *
      * @return true if a layout was found, otherwise false
      */
     public boolean tryToInflateLayout()
     {
-    	// Check for a @ScreenLayout annotation on the Screen subclass and
-    	// inflate the view if so; otherwise, do a smart search for a resource
-    	// based on the class name. If none is found it is assumed that the
-    	// user will call setContentView directly in initialize.
+        // Check for a @ScreenLayout annotation on the Screen subclass and
+        // inflate the view if so; otherwise, do a smart search for a resource
+        // based on the class name. If none is found it is assumed that the
+        // user will call setContentView directly in initialize.
 
-    	ScreenLayout screenLayout =
-    			activity.getClass().getAnnotation(ScreenLayout.class);
-		int id = ResourceResolver.resolve(activity, screenLayout);
-		
-		if (id != 0)
-		{
-			activity.setContentView(id);
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+        ScreenLayout screenLayout =
+                activity.getClass().getAnnotation(ScreenLayout.class);
+        int id = ResourceResolver.resolve(activity, screenLayout);
+
+        if (id != 0)
+        {
+            activity.setContentView(id);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
 
@@ -515,11 +533,11 @@ public class ScreenMixin
         //
         //  * Need to find "best match" initialize() method
 
-    	// Load any persistent data saved from a previous instance of the
-    	// activity.
-    	PersistenceManager.getInstance().loadPersistentContext(activity);
+        // Load any persistent data saved from a previous instance of the
+        // activity.
+        PersistenceManager.getInstance().loadPersistentContext(activity);
 
-    	// Call the initialize method.
+        // Call the initialize method.
         for (Method method : activity.getClass().getMethods())
         {
             int numArgs = (args == null) ? 0 : args.length;
@@ -534,23 +552,23 @@ public class ScreenMixin
                 }
                 catch (InvocationTargetException e)
                 {
-                	// Rethrow the target exception so it gets back to the user
-                	// without excessive wrapping.
+                    // Rethrow the target exception so it gets back to the user
+                    // without excessive wrapping.
 
-                	Throwable t = e.getTargetException();
+                    Throwable t = e.getTargetException();
 
-                	if (t instanceof RuntimeException)
-                	{
-                		throw (RuntimeException) t;
-                	}
-                	else
-                	{
-                		throw new RuntimeException(t);
-                	}
+                    if (t instanceof RuntimeException)
+                    {
+                        throw (RuntimeException) t;
+                    }
+                    else
+                    {
+                        throw new RuntimeException(t);
+                    }
                 }
                 catch (Exception e)
                 {
-                	// Do nothing. TODO right?
+                    // Do nothing. TODO right?
                 }
             }
         }
@@ -560,39 +578,39 @@ public class ScreenMixin
     // ----------------------------------------------------------
     public boolean onCreateOptionsMenu(Menu menu)
     {
-    	OptionsMenu menuAnnotation =
-    			activity.getClass().getAnnotation(OptionsMenu.class);
+        OptionsMenu menuAnnotation =
+                activity.getClass().getAnnotation(OptionsMenu.class);
 
-    	if (menuAnnotation != null)
-    	{
-    		int id = ResourceResolver.resolve(activity, menuAnnotation);
-    		
-    		MenuInflater inflater = activity.getMenuInflater();
-    		inflater.inflate(id, menu);
-    		return true;
-    	}
-    	else
-    	{
-    		return false;
-    	}
+        if (menuAnnotation != null)
+        {
+            int id = ResourceResolver.resolve(activity, menuAnnotation);
+
+            MenuInflater inflater = activity.getMenuInflater();
+            inflater.inflate(id, menu);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
 
     // ----------------------------------------------------------
     public boolean onOptionsItemSelected(MenuItem item)
     {
-    	String id = activity.getResources().getResourceEntryName(
-    			item.getItemId());
+        String id = activity.getResources().getResourceEntryName(
+                item.getItemId());
 
-    	boolean called = false;
+        boolean called = false;
 
-    	if (id != null)
-    	{
-    		OptionalEventDispatcher event =
-    				new OptionalEventDispatcher(id + "Clicked");
-    		called = event.dispatch(activity, item);
-    	}
-    	
-    	return called;
+        if (id != null)
+        {
+            OptionalEventDispatcher event =
+                    new OptionalEventDispatcher(id + "Clicked");
+            called = event.dispatch(activity, item);
+        }
+
+        return called;
     }
 }
