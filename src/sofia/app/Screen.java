@@ -21,7 +21,9 @@ import android.view.MenuItem;
  * @author  Tony Allevato
  * @version 2011.10.08
  */
-public abstract class Screen extends Activity
+public abstract class Screen
+    extends Activity
+    implements ScreenMethods
 {
     //~ Fields ................................................................
 
