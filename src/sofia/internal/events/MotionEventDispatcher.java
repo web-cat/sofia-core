@@ -13,6 +13,11 @@ import android.view.MotionEvent;
  */
 public class MotionEventDispatcher extends EventDispatcher
 {
+    //~ Fields ................................................................
+
+    private MethodTransformer xyTransformer;
+
+
     //~ Constructors ..........................................................
 
     // ----------------------------------------------------------
@@ -32,7 +37,7 @@ public class MotionEventDispatcher extends EventDispatcher
         List<MethodTransformer> descriptors =
                 super.lookupTransformers(receiver, argTypes);
 
-        xyTransformer.addIfSupportedBy(receiver, descriptors);
+        getXYTransformer().addIfSupportedBy(receiver, descriptors);
 
         return descriptors;
     }
@@ -43,14 +48,21 @@ public class MotionEventDispatcher extends EventDispatcher
      * Transforms an event with signature (MouseEvent event) to one with
      * signature (float x, float y).
      */
-    private MethodTransformer xyTransformer =
-            new MethodTransformer(float.class, float.class)
+    protected MethodTransformer getXYTransformer()
     {
-        // ----------------------------------------------------------
-        protected Object[] transform(Object... args)
+        if (xyTransformer == null)
         {
-            MotionEvent e = (MotionEvent) args[0];
-            return new Object[] { (float) e.getX(), (float) e.getY() };
+            xyTransformer = new MethodTransformer(float.class, float.class)
+            {
+                // ----------------------------------------------------------
+                protected Object[] transform(Object... args)
+                {
+                    MotionEvent e = (MotionEvent) args[0];
+                    return new Object[] { (float) e.getX(), (float) e.getY() };
+                }
+            };
         }
-    };
+
+        return xyTransformer;
+    }
 }
