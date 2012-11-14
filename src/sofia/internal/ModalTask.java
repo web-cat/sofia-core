@@ -2,8 +2,6 @@ package sofia.internal;
 
 import android.os.Bundle;
 import android.os.Looper;
-import java.lang.reflect.Field;
-import android.os.MessageQueue;
 
 // -------------------------------------------------------------------------
 /**

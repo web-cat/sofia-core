@@ -1,14 +1,8 @@
 package sofia.internal;
 
-import android.content.res.Resources;
-import android.graphics.PointF;
 import android.os.Looper;
 import android.os.MessageQueue;
 import java.lang.reflect.Field;
-import android.view.View;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import android.content.Context;
 
 // -------------------------------------------------------------------------
 /**
@@ -59,21 +53,5 @@ public class SofiaUtils
                 + "MessageQueue.mQuitAllowed field could not be found or "
                 + "there was a problem changing it.");
         }
-    }
-
-
-    // ----------------------------------------------------------
-    /**
-     * Gets the value of a resource ID that is given by name.
-     *
-     * @param context the context
-     * @param type the type of the resource
-     * @param id the id to retrieve
-     * @return the numeric identifier
-     */
-    public static int getResourceId(Context context, String type, String id)
-    {
-        Resources resources = context.getResources();
-        return resources.getIdentifier(id, type, context.getPackageName());
     }
 }
