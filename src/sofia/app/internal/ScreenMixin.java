@@ -1,7 +1,6 @@
 package sofia.app.internal;
 
 import java.lang.ref.WeakReference;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.WeakHashMap;
@@ -11,6 +10,7 @@ import sofia.app.OptionsMenu;
 import sofia.app.Screen;
 import sofia.app.ScreenLayout;
 import sofia.internal.ModalTask;
+import sofia.internal.events.EventDispatcher;
 import sofia.internal.events.OptionalEventDispatcher;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -64,6 +64,8 @@ public class ScreenMixin
     private Activity activity;
     private Bundle instanceData;
     private WeakHashMap<LifecycleInjection, Void> injections;
+
+    private EventDispatcher initialize = new EventDispatcher("initialize");
 
 
     //~ Constructors ..........................................................
@@ -456,14 +458,19 @@ public class ScreenMixin
             ref = screenArguments.get(timestamp);
         }
 
+        Object[] args = null;
+
         if (ref != null)
         {
-            return ref.get();
+            args = ref.get();
         }
-        else
+
+        if (args == null)
         {
-            return null;
+            args = new Object[0];
         }
+
+        return args;
     }
 
 
@@ -530,48 +537,33 @@ public class ScreenMixin
      */
     public void invokeInitialize(Object[] args)
     {
-        // TODO replace with reflection library
-        //
-        //  * Need to find "best match" initialize() method
-
         // Load any persistent data saved from a previous instance of the
         // activity.
         PersistenceManager.getInstance().loadPersistentContext(activity);
 
-        // Call the initialize method.
-        for (Method method : activity.getClass().getMethods())
+        // Dynamically call the initialize method that takes the specified
+        // arguments, or throw an exception if none exists.
+        if (initialize.isSupportedBy(activity, args))
         {
-            int numArgs = (args == null) ? 0 : args.length;
-
-            if (method.getName().equals("initialize")
-                && method.getParameterTypes().length == numArgs) // FIXME
+            initialize.dispatch(activity, args);
+        }
+        else
+        {
+            StringBuffer argClasses = new StringBuffer();
+            for (int i = 0; i < args.length; i++)
             {
-                try
-                {
-                    method.invoke(activity, args);
-                    break;
-                }
-                catch (InvocationTargetException e)
-                {
-                    // Rethrow the target exception so it gets back to the user
-                    // without excessive wrapping.
+                argClasses.append(args[i].getClass().getSimpleName());
 
-                    Throwable t = e.getTargetException();
-
-                    if (t instanceof RuntimeException)
-                    {
-                        throw (RuntimeException) t;
-                    }
-                    else
-                    {
-                        throw new RuntimeException(t);
-                    }
-                }
-                catch (Exception e)
+                if (i < args.length - 1)
                 {
-                    // Do nothing. TODO right?
+                    argClasses.append(", ");
                 }
             }
+
+            throw new IllegalStateException(
+                    activity.getClass().getSimpleName() + " does not have a "
+                    + "method initialize(" + argClasses.toString() + ") or "
+                    + "one with compatible arguments.");
         }
     }
 
