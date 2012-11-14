@@ -63,21 +63,13 @@ public abstract class Screen
 
     // ----------------------------------------------------------
     /**
-     * <p>
-     * Called when the screen is created. Typically, initialization of the GUI
-     * will occur in this method, by creating some views and then calling
-     * {@link #setContentView(View)}.
-     * </p><p>
-     * In this method, the views have not yet been laid out, so you cannot
-     * depend on the sizes or positions of those views to be correct (for
-     * example, calling {@link View#getWidth()} would return 0). You should also
-     * <b>not</b> call methods in {@code initialize()} that require the screen
-     * to be fully set up (like {@link #selectItemFromList(String, List)} or
-     * {@link #selectImageFromGallery()}). Call those in
-     * {@link #afterInitialize()} instead.
-     * </p>
+     * Called when the screen has been created and is about to be displayed on
+     * the device.
      */
-    //protected abstract void initialize();
+    public void initialize()
+    {
+        // Do nothing.
+    }
 
 
     // ----------------------------------------------------------
