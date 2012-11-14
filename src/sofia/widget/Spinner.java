@@ -228,6 +228,7 @@ public class Spinner<E> extends android.widget.Spinner
     //~ Private methods .......................................................
 
     // ----------------------------------------------------------
+    @SuppressWarnings("unchecked")
     private void init(AttributeSet attrs)
     {
         list = new ObservableList<E>();
