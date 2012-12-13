@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.WeakHashMap;
 
 //-------------------------------------------------------------------------
 /**
@@ -26,7 +25,7 @@ public class EventDispatcher
     private String methodName;
 
     // A cache of matching method transformers for a particular class.
-    private WeakHashMap<CacheKey,
+    private HashMap<CacheKey,
         List<MethodTransformer>> transformerCache;
 
     private static final Map<Class<?>, Class<?>> wrapperEquivalent =
@@ -63,7 +62,7 @@ public class EventDispatcher
     {
         methodName = method;
         transformerCache =
-                new WeakHashMap<CacheKey, List<MethodTransformer>>();
+                new HashMap<CacheKey, List<MethodTransformer>>();
     }
 
 
