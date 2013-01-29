@@ -229,7 +229,14 @@ public class EventDispatcher
 
         for (int i = 0; i < objects.length; i++)
         {
-            types.add(objects[i].getClass());
+            if (objects[i] == null)
+            {
+                types.add(null);
+            }
+            else
+            {
+                types.add(objects[i].getClass());
+            }
         }
 
         return types;
@@ -263,6 +270,13 @@ public class EventDispatcher
         Class<?> actualParamType, Class<?> formalParamType)
         throws IllegalArgumentException
     {
+        if (actualParamType == null && !formalParamType.isPrimitive())
+        {
+            // Assume that a null value can go into anything that isn't a
+            // primitive type.
+            return 0;
+        }
+
         if (formalParamType.equals(actualParamType))
         {
             // Identical types
@@ -433,9 +447,11 @@ public class EventDispatcher
                 for (int i = 0; i < args.length; i++)
                 {
                     Class<?> formal = argTypes.get(i);
-                    Class<?> actual = args[i].getClass();
+                    Class<?> actual = args[i] != null ?
+                            args[i].getClass() : null;
 
-                    if (!formal.isAssignableFrom(actual))
+                    if (formal != null && actual != null &&
+                            !formal.isAssignableFrom(actual))
                     {
                         //System.out.println("   Not compatible.");
                         return false;
