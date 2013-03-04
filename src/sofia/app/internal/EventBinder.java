@@ -104,7 +104,7 @@ public class EventBinder
                     // so that we can place appropriate checks at the front of
                     // this method.
 
-                    Log.d("SofiaLayoutInflater", e.getMessage());
+                    Log.d("EventBinder", e.getMessage());
                 }
             }
         }
