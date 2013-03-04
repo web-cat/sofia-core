@@ -86,7 +86,23 @@ public class DecoratingAdapter<E>
         View view;
 
         E item = getItem(position);
+
+        String title = decorate(item, ProvidesTitle.class, String.class);
+        if (title == null)
+        {
+            title = item.toString();
+        }
+
+        String subtitle = decorate(item, ProvidesSubtitle.class, String.class);
+
         int resource = defaultViewResId;
+
+        if (resource == 0)
+        {
+            resource = (subtitle != null) ?
+                    android.R.layout.simple_list_item_2 :
+                    android.R.layout.simple_list_item_1;
+        }
 
         if (convertView == null)
         {
@@ -97,14 +113,18 @@ public class DecoratingAdapter<E>
             view = convertView;
         }
 
-        String title = decorate(item, ProvidesTitle.class, String.class);
-        if (title == null)
-        {
-            title = item.toString();
-        }
-
         TextView textView = (TextView) view.findViewById(android.R.id.text1);
         textView.setText(title);
+
+        if (subtitle != null)
+        {
+            textView = (TextView) view.findViewById(android.R.id.text2);
+
+            if (textView != null)
+            {
+                textView.setText(subtitle);
+            }
+        }
 
         return view;
     }
@@ -174,7 +194,7 @@ public class DecoratingAdapter<E>
             {
                 Object r = method.invoke(object);
 
-                if (resultType.isAssignableFrom(r.getClass()))
+                if (r == null || resultType.isAssignableFrom(r.getClass()))
                 {
                     result = (ResultType) r;
                 }
