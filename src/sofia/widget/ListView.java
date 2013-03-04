@@ -212,6 +212,20 @@ public class ListView<E> extends android.widget.ListView
 
     // ----------------------------------------------------------
     /**
+     * Gets the currently selected item in the list view.
+     *
+     * @return the currently selected item in the list view, or null if there
+     *     is no item selected
+     */
+    @SuppressWarnings("unchecked")
+    public E getSelectedItem()
+    {
+        return (E) super.getSelectedItem();
+    }
+
+
+    // ----------------------------------------------------------
+    /**
      * Refreshes the list view to update its contents from the list it manages.
      * This method does not need to be called after methods like {@code add}
      * or {@code remove} -- it only needs to be called if you change a property
@@ -256,8 +270,7 @@ public class ListView<E> extends android.widget.ListView
             }
         }
 
-        adapter = new DecoratingAdapter<E>(getContext(),
-                android.R.layout.simple_list_item_1, list);
+        adapter = new DecoratingAdapter<E>(getContext(), 0, list);
         setAdapter(adapter);
 
         list.addObserver(observer);

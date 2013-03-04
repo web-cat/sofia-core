@@ -225,6 +225,20 @@ public class Spinner<E> extends android.widget.Spinner
     }
 
 
+    // ----------------------------------------------------------
+    /**
+     * Gets the currently selected item in the spinner.
+     *
+     * @return the currently selected item in the spinner, or null if there
+     *     is no item selected
+     */
+    @SuppressWarnings("unchecked")
+    public E getSelectedItem()
+    {
+        return (E) super.getSelectedItem();
+    }
+
+
     //~ Private methods .......................................................
 
     // ----------------------------------------------------------
