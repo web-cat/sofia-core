@@ -8,6 +8,7 @@ import sofia.app.internal.ScreenMixin;
 import sofia.internal.events.EventDispatcher;
 import android.content.Context;
 import android.os.Handler;
+import android.os.Looper;
 
 //-------------------------------------------------------------------------
 /**
@@ -108,7 +109,7 @@ public class Timer
         this.initialDelay = initialDelay;
         this.repeatDelay = repeatDelay;
 
-        handler = new Handler();
+        handler = new Handler(Looper.getMainLooper());
         startTime = 0;
         lastPostTime = 0;
 
