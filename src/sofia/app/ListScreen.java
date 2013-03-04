@@ -5,6 +5,10 @@ import java.util.List;
 
 import sofia.app.internal.EventBinder;
 import sofia.widget.ListView;
+import android.view.Gravity;
+import android.view.View;
+import android.widget.LinearLayout.LayoutParams;
+import android.widget.TextView;
 
 // -------------------------------------------------------------------------
 /**
@@ -50,6 +54,7 @@ public abstract class ListScreen<E> extends Screen
     //~ Fields ................................................................
 
     private ListView<E> listView;
+    private View emptyView;
 
 
     //~ Methods ...............................................................
@@ -60,6 +65,7 @@ public abstract class ListScreen<E> extends Screen
     protected void afterLayoutInflated(boolean inflated)
     {
         boolean hasListView = false;
+        boolean hasEmptyView = false;
 
         if (inflated)
         {
@@ -71,15 +77,36 @@ public abstract class ListScreen<E> extends Screen
                 listView = (ListView<E>) findViewById(listViewId);
                 hasListView = true;
             }
+
+            int emptyViewId = getResources().getIdentifier(
+                    "emptyView", "id", getPackageName());
+
+            if (emptyViewId != 0)
+            {
+                emptyView = findViewById(emptyViewId);
+                hasEmptyView = true;
+            }
         }
 
         if (!hasListView)
         {
             listView = createListView(this);
+            listView.setClickable(true);
             EventBinder.bindEvents(listView, null);
             setContentView(listView);
 
             listView.requestFocus();
+        }
+
+        if (!hasEmptyView)
+        {
+            emptyView = createEmptyView(this);
+            emptyView.setVisibility(View.GONE);
+            addContentView(emptyView,
+                    new LayoutParams(LayoutParams.MATCH_PARENT,
+                            LayoutParams.MATCH_PARENT));
+
+            listView.setEmptyView(emptyView);
         }
     }
 
@@ -87,7 +114,7 @@ public abstract class ListScreen<E> extends Screen
     // ----------------------------------------------------------
     /**
      * This factory method is used to create the {@link ListView}
-     * that will be contained by this screen.  It is provided for
+     * that will be contained by this screen. It is provided for
      * subclass extensibility, in case a subclass of {@code ListScreen} wants
      * to use a more specialized {@code ListView} instance.
      *
@@ -96,7 +123,48 @@ public abstract class ListScreen<E> extends Screen
      */
     protected ListView<E> createListView(ListScreen<E> parent)
     {
-           return new ListView<E>(parent);
+        return new ListView<E>(parent);
+    }
+
+
+    // ----------------------------------------------------------
+    /**
+     * <p>
+     * This factory method is used to create the {@link View} that will be
+     * displayed when the list is empty. It is provided for subclass
+     * extensibility, in case a subclass of {@code ListScreen} wants to use a
+     * more specialized view.
+     * </p><p>
+     * The default implementation of this method creates a {@link TextView}
+     * with {@code textAppearanceMedium}, text horizontally and vertically
+     * centered, and a padding of 10 pixels.
+     * </p>
+     *
+     * @param parent The screen that will contain the view (e.g., "this")
+     * @return A new {@code View} object to display when the list is empty.
+     */
+    protected TextView createEmptyView(ListScreen<E> parent)
+    {
+        TextView view = new TextView(parent);
+        view.setTextAppearance(this, android.R.style.TextAppearance_Medium);
+        view.setGravity(Gravity.CENTER);
+        view.setPadding(10, 10, 10, 10);
+        return view;
+    }
+
+
+    // ----------------------------------------------------------
+    /**
+     * Overridden to refresh the list view whenever the screen is about to be
+     * presented to the user, in case the underlying data model has changed due
+     * to actions on another screen.
+     */
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+
+        refresh();
     }
 
 
@@ -110,6 +178,20 @@ public abstract class ListScreen<E> extends Screen
     public final ListView<E> getListView()
     {
         return listView;
+    }
+
+
+    // ----------------------------------------------------------
+    /**
+     * Gets teh {@link View} that is displayed when there are no items in the
+     * list.
+     *
+     * @return The {@link View} that is displayed when there are no items in
+     *         the list.
+     */
+    public final View getEmptyView()
+    {
+        return emptyView;
     }
 
 
@@ -251,6 +333,19 @@ public abstract class ListScreen<E> extends Screen
 
     // ----------------------------------------------------------
     /**
+     * Gets the currently selected item in the list view.
+     *
+     * @return the currently selected item in the list view, or null if there
+     *     is no item selected
+     */
+    public E getSelectedItem()
+    {
+        return listView.getSelectedItem();
+    }
+
+
+    // ----------------------------------------------------------
+    /**
      * Refreshes the list view to update its contents from the list it manages.
      * This method does not need to be called after methods like {@code add}
      * or {@code remove} -- it only needs to be called if you change a property
@@ -260,5 +355,35 @@ public abstract class ListScreen<E> extends Screen
     public void refresh()
     {
         listView.refresh();
+    }
+
+
+    // ----------------------------------------------------------
+    /**
+     * <p>
+     * Sets an informational message that will be displayed on the screen when
+     * the list is empty.
+     * </p><p>
+     * It is only appropriate to call this method if the empty view is a
+     * {@link TextView} (or subclass of {@code TextView}). If the view is any
+     * other type, an exception will be thrown.
+     * </p>
+     *
+     * @param message the list
+     * @throws IllegalStateException if the empty view is not a
+     *     {@code TextView} (or subclass)
+     */
+    public void setEmptyMessage(String message)
+    {
+        if (emptyView instanceof TextView)
+        {
+            ((TextView) emptyView).setText(message);
+        }
+        else
+        {
+            throw new IllegalStateException(
+                    "You may only call setEmptyMessage if the ListScreen's "
+                    + "empty view is a TextView (or subclass of TextView).");
+        }
     }
 }
