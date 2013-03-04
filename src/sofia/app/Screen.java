@@ -261,10 +261,10 @@ public abstract class Screen
 
     // ----------------------------------------------------------
     @Override
-    public boolean onOptionsItemSelected(MenuItem item)
+    public boolean onMenuItemSelected(int featureId, MenuItem item)
     {
-        return mixin.onOptionsItemSelected(item)
-                || super.onOptionsItemSelected(item);
+        return mixin.onMenuItemSelected(featureId, item)
+                || super.onMenuItemSelected(featureId, item);
     }
 
 

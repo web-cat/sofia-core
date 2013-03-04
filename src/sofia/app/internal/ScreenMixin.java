@@ -18,9 +18,11 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.ScrollView;
 
 // -------------------------------------------------------------------------
 /**
@@ -518,7 +520,18 @@ public class ScreenMixin
 
         if (id != 0)
         {
-            activity.setContentView(id);
+            if (screenLayout.scroll())
+            {
+                LayoutInflater inflater = activity.getLayoutInflater();
+                ScrollView scroller = new ScrollView(activity);
+                inflater.inflate(id, scroller);
+                activity.setContentView(scroller);
+            }
+            else
+            {
+                activity.setContentView(id);
+            }
+
             return true;
         }
         else
@@ -580,6 +593,7 @@ public class ScreenMixin
 
             MenuInflater inflater = activity.getMenuInflater();
             inflater.inflate(id, menu);
+
             return true;
         }
         else
@@ -590,7 +604,7 @@ public class ScreenMixin
 
 
     // ----------------------------------------------------------
-    public boolean onOptionsItemSelected(MenuItem item)
+    public boolean onMenuItemSelected(int featureId, MenuItem item)
     {
         String id = activity.getResources().getResourceEntryName(
                 item.getItemId());

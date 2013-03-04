@@ -31,9 +31,9 @@ import java.lang.annotation.Target;
  * </dl>
  * <p>
  * If you leave the {@code @ScreenLayout} annotation off a {@code Screen}
- * subclass entirely, the behavior is identical to the third case above. 
+ * subclass entirely, the behavior is identical to the third case above.
  * </p>
- * 
+ *
  * @author  Tony Allevato
  * @version 2012.04.29
  */
@@ -42,20 +42,23 @@ import java.lang.annotation.Target;
 @Inherited
 public @interface ScreenLayout
 {
-	//~ Values ................................................................
+    //~ Values ................................................................
 
-	// ----------------------------------------------------------
-	/**
-	 * The name of a layout resource, without the {@code "res/layout"}
-	 * prefix or {@code .xml} extension. For example, {@code "foo"} would
-	 * refer to {@code "res/layout/foo.xml"}.
-	 */
-	public String value() default "";
-	
-	
-	// ----------------------------------------------------------
-	/**
-	 * The ID of a layout resource; for example, {@code R.layout.foo}.
-	 */
-	public int id() default 0;
+    // ----------------------------------------------------------
+    /**
+     * The name of a layout resource, without the {@code "res/layout"}
+     * prefix or {@code .xml} extension. For example, {@code "foo"} would
+     * refer to {@code "res/layout/foo.xml"}.
+     */
+    public String value() default "";
+
+
+    // ----------------------------------------------------------
+    /**
+     * The ID of a layout resource; for example, {@code R.layout.foo}.
+     */
+    public int id() default 0;
+
+
+    public boolean scroll() default false;
 }
