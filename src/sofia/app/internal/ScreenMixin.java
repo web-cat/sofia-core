@@ -520,7 +520,7 @@ public class ScreenMixin
 
         if (id != 0)
         {
-            if (screenLayout.scroll())
+            if (screenLayout != null && screenLayout.scroll())
             {
                 LayoutInflater inflater = activity.getLayoutInflater();
                 ScrollView scroller = new ScrollView(activity);
