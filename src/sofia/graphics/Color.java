@@ -46,7 +46,7 @@ import sofia.util.Random;
 @Persistor(ColorPersistor.class)
 public class Color
 {
-	//~ Constants .............................................................
+    //~ Constants .............................................................
 
     /** <div style="display: inline-block; width: 2em; height: 1em; border: 1px solid gray; vertical-align: bottom; background-color: #F0F8FF"></div> The named color "Alice blue" (HTML color code #F0F8FF). */
     public static final Color aliceBlue = rgb(0xF0, 0xF8, 0xFF);
@@ -468,160 +468,163 @@ public class Color
     /** <div style="display: inline-block; width: 2em; height: 1em; border: 1px solid gray; vertical-align: bottom; background-color: #9ACD32"></div> The named color "Yellow green" (HTML color code #9ACD32). */
     public static final Color yellowGreen = rgb(0x9A, 0xCD, 0x32);
 
-	
-	//~ Fields ................................................................
-
-	private int rawColor;
-	private float[] hsv;
-
-	private static final double FACTOR = 0.7;
+    /** A convenience value representing a clear/transparent color. */
+    public static final Color clear = rgb(0, 0, 0, 0);
 
 
-	//~ Constructors ..........................................................
+    //~ Fields ................................................................
 
-	// ----------------------------------------------------------
-	/**
-	 * Creates a new {@code Color} with the specified integer value. Only used
-	 * internally; users should create colors using the various static factory
-	 * methods.
-	 * 
-	 * @param rawColor the raw color integer
-	 */
-	private Color(int rawColor)
-	{
-		this.rawColor = rawColor;
-	}
+    private int rawColor;
+    private float[] hsv;
+
+    private static final double FACTOR = 0.7;
 
 
-	//~ Methods ...............................................................
+    //~ Constructors ..........................................................
 
-	// ----------------------------------------------------------
-	/**
-	 * Gets a {@code Color} that represents a gray level, where a gray level of
-	 * 0 is black and a gray level of 255 is white. Pure gray levels have red,
-	 * green, and blue components that are all equal.
-	 * 
-	 * @param gray the gray level, between 0 and 255
-	 * @return a {@code Color} that represents the gray level
-	 */
-	public static Color gray(int gray)
-	{
-		return fromRawColor(android.graphics.Color.rgb(gray, gray, gray));
-	}
-
-
-	// ----------------------------------------------------------
-	/**
-	 * Gets a {@code Color} that represents a gray level with the specified
-	 * alpha, where a gray level of 0 is black and a gray level of 255 is
-	 * white. Pure gray levels have red, green, and blue components that are
-	 * all equal.
-	 * 
-	 * @param gray the gray level, between 0 and 255
-	 * @param alpha the alpha level, between 0 and 255
-	 * @return a {@code Color} that represents the gray level
-	 */
-	public static Color gray(int gray, int alpha)
-	{
-		return fromRawColor(android.graphics.Color.argb(
-				alpha, gray, gray, gray));
-	}
+    // ----------------------------------------------------------
+    /**
+     * Creates a new {@code Color} with the specified integer value. Only used
+     * internally; users should create colors using the various static factory
+     * methods.
+     *
+     * @param rawColor the raw color integer
+     */
+    private Color(int rawColor)
+    {
+        this.rawColor = rawColor;
+    }
 
 
-	// ----------------------------------------------------------
-	/**
-	 * Gets a {@code Color} that is composed of the specified red, green, and
-	 * blue components.
-	 * 
-	 * @param red the red component, between 0 and 255
-	 * @param green the green component, between 0 and 255
-	 * @param blue the blue component, between 0 and 255
-	 * @return a {@code Color} composed of the specified red, green, and blue
-	 *     components
-	 */
-	public static Color rgb(int red, int green, int blue)
-	{
-		return fromRawColor(android.graphics.Color.rgb(red, green, blue));
-	}
+    //~ Methods ...............................................................
 
-
-	// ----------------------------------------------------------
-	/**
-	 * Gets a {@code Color} that is composed of the specified red, green, blue,
-	 * and alpha components.
-	 * 
-	 * @param red the red component, between 0 and 255
-	 * @param green the green component, between 0 and 255
-	 * @param blue the blue component, between 0 and 255
-	 * @param alpha the alpha component, between 0 and 255
-	 * @return a {@code Color} composed of the specified red, green, blue, and
-	 *     alpha components
-	 */
-	public static Color rgb(int red, int green, int blue, int alpha)
-	{
-		return fromRawColor(android.graphics.Color.argb(
-				alpha, red, green, blue));
-	}
-
-
-	// ----------------------------------------------------------
-	/**
-	 * Gets a {@code Color} that is composed of the specified hue, saturation,
-	 * and value components.
-	 * 
-	 * @param hue the hue component, between 0 (inclusive) and 360 (exclusive)
-	 * @param saturation the saturation component, between 0 and 1
-	 * @param value the value component, between 0 and 1
-	 * @return a {@code Color} composed of the specified hue, saturation, and
-	 *     value components
-	 */
-	public static Color hsv(float hue, float saturation, float value)
-	{
-		return fromRawColor(android.graphics.Color.HSVToColor(
-				new float[] { hue, saturation, value }));
-	}
-
-
-	// ----------------------------------------------------------
-	/**
-	 * Gets a {@code Color} that is composed of the specified hue, saturation,
-	 * value, and alpha components.
-	 * 
-	 * @param hue the hue component, between 0 (inclusive) and 360 (exclusive)
-	 * @param saturation the saturation component, between 0 and 1
-	 * @param value the value component, between 0 and 1
-	 * @param alpha the alpha component, between 0 and 255
-	 * @return a {@code Color} composed of the specified hue, saturation,
-	 *     value, and alpha components
-	 */
-	public static Color hsv(float hue, float saturation, float value,
-			int alpha)
-	{
-		return fromRawColor(android.graphics.Color.HSVToColor(alpha,
-				new float[] { hue, saturation, value }));
-	}
-
-
-	// ----------------------------------------------------------
-	/**
-	 * Gets a {@code Color} that represents an Android color integer.
-	 * 
-	 * @param rawColor the Android color integer
-	 * @return a {@code Color} that represents the specified Android color
-	 *     integer
-	 */
-	public static Color fromRawColor(int rawColor)
-	{
-		return new Color(rawColor);
-	}
+    // ----------------------------------------------------------
+    /**
+     * Gets a {@code Color} that represents a gray level, where a gray level of
+     * 0 is black and a gray level of 255 is white. Pure gray levels have red,
+     * green, and blue components that are all equal.
+     *
+     * @param gray the gray level, between 0 and 255
+     * @return a {@code Color} that represents the gray level
+     */
+    public static Color gray(int gray)
+    {
+        return fromRawColor(android.graphics.Color.rgb(gray, gray, gray));
+    }
 
 
     // ----------------------------------------------------------
-	/**
-	 * Gets the random color.
-	 * 
-	 * @return a random color
-	 */
+    /**
+     * Gets a {@code Color} that represents a gray level with the specified
+     * alpha, where a gray level of 0 is black and a gray level of 255 is
+     * white. Pure gray levels have red, green, and blue components that are
+     * all equal.
+     *
+     * @param gray the gray level, between 0 and 255
+     * @param alpha the alpha level, between 0 and 255
+     * @return a {@code Color} that represents the gray level
+     */
+    public static Color gray(int gray, int alpha)
+    {
+        return fromRawColor(android.graphics.Color.argb(
+                alpha, gray, gray, gray));
+    }
+
+
+    // ----------------------------------------------------------
+    /**
+     * Gets a {@code Color} that is composed of the specified red, green, and
+     * blue components.
+     *
+     * @param red the red component, between 0 and 255
+     * @param green the green component, between 0 and 255
+     * @param blue the blue component, between 0 and 255
+     * @return a {@code Color} composed of the specified red, green, and blue
+     *     components
+     */
+    public static Color rgb(int red, int green, int blue)
+    {
+        return fromRawColor(android.graphics.Color.rgb(red, green, blue));
+    }
+
+
+    // ----------------------------------------------------------
+    /**
+     * Gets a {@code Color} that is composed of the specified red, green, blue,
+     * and alpha components.
+     *
+     * @param red the red component, between 0 and 255
+     * @param green the green component, between 0 and 255
+     * @param blue the blue component, between 0 and 255
+     * @param alpha the alpha component, between 0 and 255
+     * @return a {@code Color} composed of the specified red, green, blue, and
+     *     alpha components
+     */
+    public static Color rgb(int red, int green, int blue, int alpha)
+    {
+        return fromRawColor(android.graphics.Color.argb(
+                alpha, red, green, blue));
+    }
+
+
+    // ----------------------------------------------------------
+    /**
+     * Gets a {@code Color} that is composed of the specified hue, saturation,
+     * and value components.
+     *
+     * @param hue the hue component, between 0 (inclusive) and 360 (exclusive)
+     * @param saturation the saturation component, between 0 and 1
+     * @param value the value component, between 0 and 1
+     * @return a {@code Color} composed of the specified hue, saturation, and
+     *     value components
+     */
+    public static Color hsv(float hue, float saturation, float value)
+    {
+        return fromRawColor(android.graphics.Color.HSVToColor(
+                new float[] { hue, saturation, value }));
+    }
+
+
+    // ----------------------------------------------------------
+    /**
+     * Gets a {@code Color} that is composed of the specified hue, saturation,
+     * value, and alpha components.
+     *
+     * @param hue the hue component, between 0 (inclusive) and 360 (exclusive)
+     * @param saturation the saturation component, between 0 and 1
+     * @param value the value component, between 0 and 1
+     * @param alpha the alpha component, between 0 and 255
+     * @return a {@code Color} composed of the specified hue, saturation,
+     *     value, and alpha components
+     */
+    public static Color hsv(float hue, float saturation, float value,
+            int alpha)
+    {
+        return fromRawColor(android.graphics.Color.HSVToColor(alpha,
+                new float[] { hue, saturation, value }));
+    }
+
+
+    // ----------------------------------------------------------
+    /**
+     * Gets a {@code Color} that represents an Android color integer.
+     *
+     * @param rawColor the Android color integer
+     * @return a {@code Color} that represents the specified Android color
+     *     integer
+     */
+    public static Color fromRawColor(int rawColor)
+    {
+        return new Color(rawColor);
+    }
+
+
+    // ----------------------------------------------------------
+    /**
+     * Gets the random color.
+     *
+     * @return a random color
+     */
     public static Color getRandomColor()
     {
         Random gen = Random.generator();
@@ -630,245 +633,283 @@ public class Color
     }
 
 
-	// ----------------------------------------------------------
+    // ----------------------------------------------------------
+    /**
+     * <p>
+     * Returns true if this color is opaque (it has an alpha of 255), or false
+     * if it has an alpha less than 255.
+     * </p><p>
+     * Notice that {@link #isOpaque()} is not the strict opposite of
+     * {@link #isTransparent()}. Colors with alpha between 1 and 254 will
+     * return false for both.
+     * </p>
+     *
+     * @return true if the color is opaque, false if it is not
+     */
+    public boolean isOpaque()
+    {
+        return android.graphics.Color.alpha(rawColor) == 255;
+    }
+
+
+    // ----------------------------------------------------------
+    /**
+     * <p>
+     * Returns true if this color is transparent (it has an alpha of 0), or
+     * false if it has an alpha greater than 0.
+     * </p><p>
+     * Notice that {@link #isTransparent()} is not the strict opposite of
+     * {@link #isOpaque()}. Colors with alpha between 1 and 254 will return
+     * false for both.
+     * </p>
+     *
+     * @return true if the color is transparent, false if it is not
+     */
+    public boolean isTransparent()
+    {
+        return android.graphics.Color.alpha(rawColor) == 0;
+    }
+
+
+    // ----------------------------------------------------------
     /**
      * Gets the red component of the receiver.
-     * 
+     *
      * @return the red component of the receiver, between 0 and 255
      */
-	public int red()
-	{
-		return android.graphics.Color.red(rawColor);
-	}
+    public int red()
+    {
+        return android.graphics.Color.red(rawColor);
+    }
 
 
-	// ----------------------------------------------------------
+    // ----------------------------------------------------------
     /**
      * Gets the green component of the receiver.
-     * 
+     *
      * @return the green component of the receiver, between 0 and 255
      */
-	public int green()
-	{
-		return android.graphics.Color.green(rawColor);
-	}
+    public int green()
+    {
+        return android.graphics.Color.green(rawColor);
+    }
 
 
-	// ----------------------------------------------------------
+    // ----------------------------------------------------------
     /**
      * Gets the blue component of the receiver.
-     * 
+     *
      * @return the blue component of the receiver, between 0 and 255
      */
-	public int blue()
-	{
-		return android.graphics.Color.blue(rawColor);
-	}
+    public int blue()
+    {
+        return android.graphics.Color.blue(rawColor);
+    }
 
 
-	// ----------------------------------------------------------
+    // ----------------------------------------------------------
     /**
      * Gets the alpha component of the receiver.
-     * 
+     *
      * @return the alpha component of the receiver, between 0 and 255
      */
-	public int alpha()
-	{
-		return android.graphics.Color.alpha(rawColor);
-	}
+    public int alpha()
+    {
+        return android.graphics.Color.alpha(rawColor);
+    }
 
 
-	// ----------------------------------------------------------
+    // ----------------------------------------------------------
     /**
      * Gets the hue component of the receiver in the HSV color model.
-     * 
+     *
      * @return the hue component of the receiver, between 0 (inclusive) and
      *     360 (exclusive)
      */
-	public float hue()
-	{
-		computeHSVIfNecessary();
-		return hsv[0];
-	}
+    public float hue()
+    {
+        computeHSVIfNecessary();
+        return hsv[0];
+    }
 
 
-	// ----------------------------------------------------------
+    // ----------------------------------------------------------
     /**
      * Gets the saturation component of the receiver in the HSV color model.
-     * 
+     *
      * @return the saturation component of the receiver, between 0 and 1
-     */	
-	public float saturation()
-	{
-		computeHSVIfNecessary();
-		return hsv[1];
-	}
+     */
+    public float saturation()
+    {
+        computeHSVIfNecessary();
+        return hsv[1];
+    }
 
 
-	// ----------------------------------------------------------
+    // ----------------------------------------------------------
     /**
      * Gets the value component of the receiver in the HSV color model.
-     * 
+     *
      * @return the value component of the receiver, between 0 and 1
      */
-	public float value()
-	{
-		computeHSVIfNecessary();
-		return hsv[2];
-	}
+    public float value()
+    {
+        computeHSVIfNecessary();
+        return hsv[2];
+    }
 
 
-	// ----------------------------------------------------------
-	/**
-	 * Gets a new {@code Color} that is a brighter version of the receiver. The
-	 * alpha value will remain the same.
-	 *  
-	 * @return a {@code Color} that is a brighter version of the receiver
-	 */
-	public Color brighter()
-	{
-	    int r = red();
-	    int g = green();
-	    int b = blue();
-	    int alpha = alpha();
+    // ----------------------------------------------------------
+    /**
+     * Gets a new {@code Color} that is a brighter version of the receiver. The
+     * alpha value will remain the same.
+     *
+     * @return a {@code Color} that is a brighter version of the receiver
+     */
+    public Color brighter()
+    {
+        int r = red();
+        int g = green();
+        int b = blue();
+        int alpha = alpha();
 
-	    int i = (int) (1.0 / (1.0 - FACTOR));
+        int i = (int) (1.0 / (1.0 - FACTOR));
 
-	    if (r == 0 && g == 0 && b == 0)
-	    {
-	        return rgb(i, i, i, alpha);
-	    }
+        if (r == 0 && g == 0 && b == 0)
+        {
+            return rgb(i, i, i, alpha);
+        }
 
-	    if (r > 0 && r < i) r = i;
-	    if (g > 0 && g < i) g = i;
-	    if (b > 0 && b < i) b = i;
+        if (r > 0 && r < i) r = i;
+        if (g > 0 && g < i) g = i;
+        if (b > 0 && b < i) b = i;
 
-	    return rgb(Math.min((int) (r / FACTOR), 255),
-	    		   Math.min((int) (g / FACTOR), 255),
-	    		   Math.min((int) (b / FACTOR), 255),
-	               alpha);
-	}
-
-
-	// ----------------------------------------------------------
-	/**
-	 * Gets a new {@code Color} that is a darker version of the receiver. The
-	 * alpha value will remain the same.
-	 *  
-	 * @return a {@code Color} that is a darker version of the receiver
-	 */
-	public Color darker()
-	{
-		return rgb(Math.max((int) (red() * FACTOR), 0),
-				   Math.max((int) (green() * FACTOR), 0),
-				   Math.max((int) (blue() * FACTOR), 0),
-				   alpha());
-	}
+        return rgb(Math.min((int) (r / FACTOR), 255),
+                   Math.min((int) (g / FACTOR), 255),
+                   Math.min((int) (b / FACTOR), 255),
+                   alpha);
+    }
 
 
-	// ----------------------------------------------------------
-	/**
-	 * Gets a new {@code Color} that is chromatically the same as the receiver
-	 * (it has the same red, green, and blue components), but with a different
-	 * alpha component.
-	 * 
-	 * @param alpha the desired alpha component of the new color
-	 * @return a {@code Color} that is chromatically the same as the receiver
-	 *     but with a different alpha component
-	 */
-	public Color withAlpha(int alpha)
-	{
-		return rgb(red(), green(), blue(), alpha);
-	}
+    // ----------------------------------------------------------
+    /**
+     * Gets a new {@code Color} that is a darker version of the receiver. The
+     * alpha value will remain the same.
+     *
+     * @return a {@code Color} that is a darker version of the receiver
+     */
+    public Color darker()
+    {
+        return rgb(Math.max((int) (red() * FACTOR), 0),
+                   Math.max((int) (green() * FACTOR), 0),
+                   Math.max((int) (blue() * FACTOR), 0),
+                   alpha());
+    }
 
 
-	// ----------------------------------------------------------
-	/**
-	 * Gets the Android color integer that corresponds to the receiver.
-	 * 
-	 * @return the Android color integer that corresponds to the receiver
-	 */
-	public int toRawColor()
-	{
-		return rawColor;
-	}
+    // ----------------------------------------------------------
+    /**
+     * Gets a new {@code Color} that is chromatically the same as the receiver
+     * (it has the same red, green, and blue components), but with a different
+     * alpha component.
+     *
+     * @param alpha the desired alpha component of the new color
+     * @return a {@code Color} that is chromatically the same as the receiver
+     *     but with a different alpha component
+     */
+    public Color withAlpha(int alpha)
+    {
+        return rgb(red(), green(), blue(), alpha);
+    }
 
 
-	// ----------------------------------------------------------
-	/**
-	 * Gets a value indicating whether the receiving {@code Color} is equal to
-	 * the specified object. A {@code Color} is equal to another object if the
-	 * other object is not null, a {@code Color}, and has identical red, green,
-	 * blue, and alpha components as the receiver.
-	 * 
-	 * @param other the other object
-	 * @return true if the receiver is equal to the other object, or false if
-	 *     it is not
-	 */
-	@Override
-	public boolean equals(Object other)
-	{
-		if (other instanceof Color)
-		{
-			return (rawColor == ((Color) other).rawColor);
-		}
-		else
-		{
-			return false;
-		}
-	}
+    // ----------------------------------------------------------
+    /**
+     * Gets the Android color integer that corresponds to the receiver.
+     *
+     * @return the Android color integer that corresponds to the receiver
+     */
+    public int toRawColor()
+    {
+        return rawColor;
+    }
 
 
-	// ----------------------------------------------------------
-	/**
-	 * Returns a hash code value for the object.
-	 * 
-	 * @return a hash code value for the object
-	 */
-	@Override
-	public int hashCode()
-	{
-		return rawColor;
-	}
+    // ----------------------------------------------------------
+    /**
+     * Gets a value indicating whether the receiving {@code Color} is equal to
+     * the specified object. A {@code Color} is equal to another object if the
+     * other object is not null, a {@code Color}, and has identical red, green,
+     * blue, and alpha components as the receiver.
+     *
+     * @param other the other object
+     * @return true if the receiver is equal to the other object, or false if
+     *     it is not
+     */
+    @Override
+    public boolean equals(Object other)
+    {
+        if (other instanceof Color)
+        {
+            return (rawColor == ((Color) other).rawColor);
+        }
+        else
+        {
+            return false;
+        }
+    }
 
 
-	// ----------------------------------------------------------
-	/**
-	 * Gets a human-readable string representation of the color, in the format
-	 * "Color([red], [green], [blue], [alpha])".
-	 * 
-	 * @return a human-readable string representation of the color
-	 */
-	@Override
-	public String toString()
-	{
-		StringBuffer buffer = new StringBuffer();
+    // ----------------------------------------------------------
+    /**
+     * Returns a hash code value for the object.
+     *
+     * @return a hash code value for the object
+     */
+    @Override
+    public int hashCode()
+    {
+        return rawColor;
+    }
 
-		buffer.append("Color(");
-		buffer.append(android.graphics.Color.red(rawColor));
-		buffer.append(", ");
-		buffer.append(android.graphics.Color.green(rawColor));
-		buffer.append(", ");
-		buffer.append(android.graphics.Color.blue(rawColor));
+
+    // ----------------------------------------------------------
+    /**
+     * Gets a human-readable string representation of the color, in the format
+     * "Color([red], [green], [blue], [alpha])".
+     *
+     * @return a human-readable string representation of the color
+     */
+    @Override
+    public String toString()
+    {
+        StringBuffer buffer = new StringBuffer();
+
+        buffer.append("Color(");
+        buffer.append(android.graphics.Color.red(rawColor));
+        buffer.append(", ");
+        buffer.append(android.graphics.Color.green(rawColor));
+        buffer.append(", ");
+        buffer.append(android.graphics.Color.blue(rawColor));
         buffer.append(", ");
         buffer.append(android.graphics.Color.alpha(rawColor));
-		buffer.append(")");
+        buffer.append(")");
 
-		return buffer.toString();
-	}
+        return buffer.toString();
+    }
 
 
-	// ----------------------------------------------------------
-	/**
-	 * Computes and caches the HSV components of this color, if they have not
-	 * been computed already.
-	 */
-	private void computeHSVIfNecessary()
-	{
-		if (hsv == null)
-		{
-			hsv = new float[3];
-			android.graphics.Color.colorToHSV(rawColor, hsv);
-		}
-	}
+    // ----------------------------------------------------------
+    /**
+     * Computes and caches the HSV components of this color, if they have not
+     * been computed already.
+     */
+    private void computeHSVIfNecessary()
+    {
+        if (hsv == null)
+        {
+            hsv = new float[3];
+            android.graphics.Color.colorToHSV(rawColor, hsv);
+        }
+    }
 }
