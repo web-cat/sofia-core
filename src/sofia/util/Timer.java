@@ -70,14 +70,10 @@ import android.os.Looper;
  *
  * <h3>Threading concerns</h3>
  * <p>
- * Timed methods are called on the same thread that calls the factory method
- * that starts the timer. In most cases, this is the GUI thread, and therefore
- * it <strong>is safe</strong> to update the GUI from within a method called
- * by a timer if the timer is started from the GUI thread.
- * </p><p>
- * If you are using the {@code Timer} class from another thread, it may be
- * important to be aware that the method will be called on that same thread,
- * not on the GUI thread.
+ * Timed methods are always called on the main GUI thread, regardless of which
+ * thread they are started on. This is to avoid problems when users might want
+ * to start timed method calls on the physics thread (for example, in reaction
+ * to a collision between shapes).
  * </p>
  *
  * @author  Tony Allevato
