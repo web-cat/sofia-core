@@ -29,10 +29,10 @@ import android.util.DisplayMetrics;
  */
 public class JarResources
 {
-	//~ Methods ...............................................................
+    //~ Methods ...............................................................
 
     // ----------------------------------------------------------
-	/**
+    /**
      * Get an image resource by name, taking the current device's DPI into
      * account.  The image may be a traditional Android resource, in which
      * case the normal resource mechanism is used to look it up, or it may
@@ -43,20 +43,20 @@ public class JarResources
      * "ldpi", "mdpi", "hdpi", and/or "xhdpi". Image files are held in these
      * dpi-based subpackages.  The "images" subpackage itself will also be
      * searched, with images it contains treated at the same DPI as the device.
-	 *
-	 * @param context The context for determining the display resolution,
-	 *                and also the application's package, if the image isn't
-	 *                found in any of the specified package(s).
-	 * @param name    The name of the image file, including its extension.
+     *
+     * @param context The context for determining the display resolution,
+     *                and also the application's package, if the image isn't
+     *                found in any of the specified package(s).
+     * @param name    The name of the image file, including its extension.
      * @param packageNames The packages where the images are located
      *                (can be omitted, to only search the application package).
-	 * @return A {@code Bitmap} containing the image, or null if no
-	 *     image could be found.
-	 */
-	public static Bitmap getBitmap(
-	    Context context, String name, String ... packageNames)
-	{
-	    return getBitmap(context, name, true, true, packageNames);
+     * @return A {@code Bitmap} containing the image, or null if no
+     *     image could be found.
+     */
+    public static Bitmap getBitmap(
+        Context context, String name, String ... packageNames)
+    {
+        return getBitmap(context, name, true, true, packageNames);
     }
 
 
@@ -148,7 +148,7 @@ public class JarResources
         {
             name = name.substring(0, pos);
         }
-        log.debug("looking for resource named {}", name);
+        //log.debug("looking for resource named {}", name);
 
         // Look for cached bitmap first
         Bitmap result = null;
@@ -159,7 +159,7 @@ public class JarResources
                 result = ref.get();
                 if (result != null)
                 {
-                    log.debug("found cached resource for {}", name);
+                    //log.debug("found cached resource for {}", name);
                     return result;
                 }
             }
@@ -182,12 +182,12 @@ public class JarResources
         }
         if (result != null)
         {
-            log.debug("caching resource id {} for {}", id, name);
+            //log.debug("caching resource id {} for {}", id, name);
             RESOURCE_CACHE.put(name, new WeakReference<Bitmap>(result));
         }
         else
         {
-            log.debug("cannot find resource {}", name);
+            //log.debug("cannot find resource {}", name);
         }
         return result;
     }
@@ -226,7 +226,7 @@ public class JarResources
         {
             pkgName = "";
         }
-        log.debug("looking for image named {} in '{}'", name, pkgName);
+        //log.debug("looking for image named {} in '{}'", name, pkgName);
 
         // Look for cached bitmap first
         Bitmap result = null;
@@ -234,7 +234,7 @@ public class JarResources
             CLASSPATH_CACHE.get(pkgName);
         if (pkgMap == null)
         {
-            log.debug("no package cache for '{}'", pkgName);
+            //log.debug("no package cache for '{}'", pkgName);
             pkgMap = new java.util.TreeMap<String, WeakReference<Bitmap>>();
             CLASSPATH_CACHE.put(pkgName, pkgMap);
         }
@@ -246,8 +246,8 @@ public class JarResources
                 result = ref.get();
                 if (result != null)
                 {
-                    log.debug("found cached image for {} in '{}'",
-                    		name, pkgName);
+                    //log.debug("found cached image for {} in '{}'",
+                    //        name, pkgName);
                     return result;
                 }
             }
@@ -282,18 +282,18 @@ public class JarResources
             pattern = XHDPI;
         }
 
-		InputStream stream = null;
-	    // OK, now search using the specified package
-	    String base = "";
-	    if (pkgName.length() > 0)
-	    {
-	        base = pkgName.replace('.', '/') + "/";
-	    }
-	    base += "images/";
-	    ClassLoader loader = JarResources.class.getClassLoader();
-	    for (int attempt : SEARCH_PATTERN[pattern])
-	    {
-	        String dir = base + DENSITY_NAME[attempt] + "/";
+        InputStream stream = null;
+        // OK, now search using the specified package
+        String base = "";
+        if (pkgName.length() > 0)
+        {
+            base = pkgName.replace('.', '/') + "/";
+        }
+        base += "images/";
+        ClassLoader loader = JarResources.class.getClassLoader();
+        for (int attempt : SEARCH_PATTERN[pattern])
+        {
+            String dir = base + DENSITY_NAME[attempt] + "/";
 
             if (hasExtension)
             {
@@ -312,16 +312,16 @@ public class JarResources
                 }
             }
 
-	        if (stream != null)
-	        {
-	            foundDensity = attempt;
-	            break;
-	        }
+            if (stream != null)
+            {
+                foundDensity = attempt;
+                break;
+            }
         }
 
-	    if (stream == null)
-	    {
-	        // If we make it here, try for the default (no density) name
+        if (stream == null)
+        {
+            // If we make it here, try for the default (no density) name
             if (hasExtension)
             {
                 stream = loader.getResourceAsStream(base + name);
@@ -338,11 +338,11 @@ public class JarResources
                     }
                 }
             }
-	    }
+        }
 
-		if (stream != null)
-		{
-	        BitmapFactory.Options bfo = null;
+        if (stream != null)
+        {
+            BitmapFactory.Options bfo = null;
             if (foundDensity >= 0 && scaleForDpi)
             {
                 bfo = new BitmapFactory.Options();
@@ -353,25 +353,25 @@ public class JarResources
                 bfo = new BitmapFactory.Options();
                 bfo.inScaled = false;
             }
-		    result = BitmapFactory.decodeStream(stream, null, bfo);
-		}
-		if (result != null)
-		{
-            log.debug("caching image {} for package '{}'", name, pkgName);
-		    pkgMap.put(name, new WeakReference<Bitmap>(result));
-		}
-		else
-		{
-		    log.debug("cannot find image {} in '{}'", name, pkgName);
-		}
-		return result;
-	}
+            result = BitmapFactory.decodeStream(stream, null, bfo);
+        }
+        if (result != null)
+        {
+            //log.debug("caching image {} for package '{}'", name, pkgName);
+            pkgMap.put(name, new WeakReference<Bitmap>(result));
+        }
+        else
+        {
+            //log.debug("cannot find image {} in '{}'", name, pkgName);
+        }
+        return result;
+    }
 
 
     //~ Fields ................................................................
 
-	private static final Logger log = LoggerFactory.getLogger(
-			JarResources.class);
+    private static final Logger log = LoggerFactory.getLogger(
+            JarResources.class);
 
     // Map from ints 0-3 to corresponding density names here
     private static final String[] DENSITY_NAME = {
@@ -396,24 +396,24 @@ public class JarResources
     };
 
     // See http://developer.android.com/guide/practices/screens_support.html
-	// Values based on info in Table 1 on that page.
-	private static final int[] CUTOFF = {
-	    140,    // upper limit for ldpi, which is ~120dpi
-	    200,    // upper limit for mdpi, which is ~160dpi
-	    280     // upper limit for hdpi, which is ~240dpi
-	            // 400 is upper limit for xhdpi, which is ~320dpi
-	            // don't worry about xxhigh, since xhdpi should scale well
-	};
+    // Values based on info in Table 1 on that page.
+    private static final int[] CUTOFF = {
+        140,    // upper limit for ldpi, which is ~120dpi
+        200,    // upper limit for mdpi, which is ~160dpi
+        280     // upper limit for hdpi, which is ~240dpi
+                // 400 is upper limit for xhdpi, which is ~320dpi
+                // don't worry about xxhigh, since xhdpi should scale well
+    };
 
-	// Search starts with the preferred resolution, and then goes high-to-low
-	// on the assumption that higher res images scale down better than
-	// attempting to scale up lower res images.
-	private static final int[][] SEARCH_PATTERN = {
-	    { LDPI, XHDPI, HDPI, MDPI },  // for ldpi screens
+    // Search starts with the preferred resolution, and then goes high-to-low
+    // on the assumption that higher res images scale down better than
+    // attempting to scale up lower res images.
+    private static final int[][] SEARCH_PATTERN = {
+        { LDPI, XHDPI, HDPI, MDPI },  // for ldpi screens
         { MDPI, XHDPI, HDPI, LDPI },  // for mdpi screens
         { HDPI, XHDPI, MDPI, LDPI },  // for hdpi screens
         { XHDPI, HDPI, MDPI, LDPI }   // for xhdpi screens
-	};
+    };
 
     private static final String[] EXTENSIONS = {
         ".png", ".PNG", ".gif", ".GIF", ".jpg", ".JPG", ".JPEG", ".JPEG"
