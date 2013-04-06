@@ -88,17 +88,19 @@ public class ImageView extends android.widget.ImageView
         this.imageURI = uri;
         loaded = false;
 
-        String scheme = uri.getScheme();
-        if ("http".equalsIgnoreCase(scheme)
-                || "https".equalsIgnoreCase(scheme))
+        if (uri != null)
         {
-            new AsyncImageLoader().execute();
+            String scheme = uri.getScheme();
+            if ("http".equalsIgnoreCase(scheme)
+                    || "https".equalsIgnoreCase(scheme))
+            {
+                new AsyncImageLoader().execute();
+                return;
+            }
         }
-        else
-        {
-            loaded = true;
-            super.setImageURI(uri);
-        }
+
+        loaded = true;
+        super.setImageURI(uri);
     }
 
 
