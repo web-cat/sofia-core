@@ -97,10 +97,17 @@ public class ImageView extends android.widget.ImageView
                 new AsyncImageLoader().execute();
                 return;
             }
+            else
+            {
+                loaded = true;
+                super.setImageURI(uri);
+            }
         }
-
-        loaded = true;
-        super.setImageURI(uri);
+        else
+        {
+            loaded = true;
+            setImageBitmap(null);
+        }
     }
 
 
