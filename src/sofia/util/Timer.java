@@ -269,7 +269,13 @@ public class Timer
             {
                 boolean stop = timerFired.dispatch(receiver);
 
-                if (!stop && repeatDelay > 0)
+                // The ideal way to stop a repeating timer is to return true
+                // from the handler method, but some users might call stop()
+                // inside the handler instead (especially if it's a void
+                // method). The check startTime != 0 makes this work correctly
+                // as well.
+
+                if (!stop && startTime != 0 && repeatDelay > 0)
                 {
                     long realDelay = repeatDelay
                             - (System.currentTimeMillis() - startTime);
