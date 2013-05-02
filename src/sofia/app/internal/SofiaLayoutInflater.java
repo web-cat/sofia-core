@@ -23,21 +23,29 @@ public class SofiaLayoutInflater extends LayoutInflater
         "android.widget.", "android.webkit.", "android.view."
     };
 
+    private Object receiver;
+    private EventBinder eventBinder;
+
 
     //~ Constructors ..........................................................
 
     // ----------------------------------------------------------
-    public SofiaLayoutInflater(Context context)
+    public SofiaLayoutInflater(Context context, Object receiver)
     {
         super(context);
+        this.receiver = receiver;
+        eventBinder = new EventBinder(receiver);
         setFactory(factory);
     }
 
 
     // ----------------------------------------------------------
-    public SofiaLayoutInflater(LayoutInflater original, Context newContext)
+    public SofiaLayoutInflater(LayoutInflater original, Context newContext,
+            Object receiver)
     {
         super(original, newContext);
+        this.receiver = receiver;
+        eventBinder = new EventBinder(receiver);
         setFactory(factory);
     }
 
@@ -47,14 +55,14 @@ public class SofiaLayoutInflater extends LayoutInflater
     // ----------------------------------------------------------
     public LayoutInflater cloneInContext(Context newContext)
     {
-        return new SofiaLayoutInflater(this, newContext);
+        return new SofiaLayoutInflater(this, newContext, receiver);
     }
 
 
     // ----------------------------------------------------------
     private void bindField(View view)
     {
-        Class<?> ctxClass = getContext().getClass();
+        Class<?> receiverClass = receiver.getClass();
 
         String id = getIdName(getContext(), view.getId());
 
@@ -62,12 +70,12 @@ public class SofiaLayoutInflater extends LayoutInflater
         {
             try
             {
-                Field field = ctxClass.getDeclaredField(id);
+                Field field = receiverClass.getDeclaredField(id);
 
                 if (field.getType().isAssignableFrom(view.getClass()))
                 {
                     field.setAccessible(true);
-                    field.set(view.getContext(), view);
+                    field.set(receiver, view);
                 }
             }
             catch (Exception e)
@@ -140,7 +148,7 @@ public class SofiaLayoutInflater extends LayoutInflater
 
             if (view != null)
             {
-                EventBinder.bindEvents(view, attrs);
+                eventBinder.bindEvents(view, attrs);
                 bindField(view);
             }
 

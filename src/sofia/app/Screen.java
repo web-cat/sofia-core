@@ -133,7 +133,7 @@ public abstract class Screen
             {
                 LayoutInflater inflater =
                         (LayoutInflater) super.getSystemService(service);
-                layoutInflater = new SofiaLayoutInflater(inflater, this);
+                layoutInflater = new SofiaLayoutInflater(inflater, this, this);
             }
 
             return layoutInflater;

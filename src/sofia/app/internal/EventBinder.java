@@ -1,5 +1,7 @@
 package sofia.app.internal;
 
+import java.util.HashMap;
+
 import sofia.internal.events.EventDispatcher;
 import sofia.internal.events.OptionalEventDispatcher;
 import android.content.Context;
@@ -13,6 +15,8 @@ import android.widget.AbsListView;
 import android.widget.AbsSpinner;
 import android.widget.AdapterView;
 import android.widget.EditText;
+import android.widget.RatingBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 //-------------------------------------------------------------------------
@@ -28,17 +32,24 @@ public class EventBinder
 
     private static final String ANDROID_NS =
             "http://schemas.android.com/apk/res/android";
+    private static HashMap<
+        Class<? extends View>, Binder<? extends View>> binders;
+
+    private Object receiver;
 
 
     //~ Constructors ..........................................................
 
     // ----------------------------------------------------------
     /**
-     * Prevent instantiation.
+     * Initializes a new {@code EventBinder} that dispatches events to the
+     * specified receiver.
+     *
+     * @param receiver the object that will receive the event notifications
      */
-    private EventBinder()
+    public EventBinder(Object receiver)
     {
-        // Do nothing.
+        this.receiver = receiver;
     }
 
 
@@ -52,165 +63,21 @@ public class EventBinder
      * @param attrs the attribute set that was used during inflation (may be
      *     null if this is called outside of the inflater)
      */
-    public static void bindEvents(View view, AttributeSet attrs)
+    @SuppressWarnings("unchecked")
+    public void bindEvents(View view, AttributeSet attrs)
     {
-        bindOnClick(view, attrs);
-        bindOnItemClick(view, attrs);
-        bindOnItemSelected(view, attrs);
-        bindOnEditingDone(view, attrs);
-    }
+        Class<?> viewClass = view.getClass();
+        Binder<? extends View> binder = null;
 
-
-    // ----------------------------------------------------------
-    /**
-     * This method implements the following binding rule: if a view is
-     * clickable, and it does not already have a method bound to the onClick
-     * attribute, then connect it to the context method "${id}Clicked", where
-     * "${id}" is the string name of the view's identifier.
-     *
-     * @param view the view
-     * @param attrs the attribute set
-     */
-    private static void bindOnClick(final View view, AttributeSet attrs)
-    {
-        if (!AdapterView.class.isAssignableFrom(view.getClass())
-                && view.isClickable()
-                && (attrs == null ||
-                    attrs.getAttributeValue(ANDROID_NS, "onClick") == null))
+        while (binder == null && !viewClass.equals(Object.class))
         {
-            final String id = getIdName(view.getContext(), view.getId());
-
-            if (id != null)
-            {
-                final OptionalEventDispatcher event =
-                        new OptionalEventDispatcher(id + "Clicked", 0);
-
-                try
-                {
-                    view.setOnClickListener(new View.OnClickListener() {
-                        public void onClick(View v)
-                        {
-                            event.dispatch(v.getContext(), v);
-                        }
-                    });
-                }
-                catch (Exception e)
-                {
-                    // Do nothing. This try/catch was placed here because it
-                    // was discovered that setOnClickListener on an AdapterView
-                    // throws an exception with a message directing you to use
-                    // setOnItemClickListener instead. For future-proofing, we
-                    // want to catch any such possible exceptions and log them
-                    // so that we can place appropriate checks at the front of
-                    // this method.
-
-                    Log.d("EventBinder", e.getMessage());
-                }
-            }
+            binder = binders.get(viewClass);
+            viewClass = viewClass.getSuperclass();
         }
-    }
 
-
-    // ----------------------------------------------------------
-    /**
-     * This method implements the following binding rule: for each AbsListView,
-     * attach an OnItemClickListener to it that calls the context method
-     * "${id}ItemClicked", where "${id}" is the string name of the view's
-     * identifier.
-     *
-     * @param view the view
-     * @param attrs the attribute set
-     */
-    private static void bindOnItemClick(final View view, AttributeSet attrs)
-    {
-        if (view instanceof AbsListView)
+        if (binder != null)
         {
-            AbsListView adapterView = (AbsListView) view;
-
-            // Fall back to "listView" as a default handler prefix if the list
-            // doesn't have its own ID -- this supports the automatically
-            // created ListView on a ListScreen.
-            String resourceId = getIdName(view.getContext(), view.getId());
-            final String id = (resourceId != null) ? resourceId : "listView";
-
-            final OptionalEventDispatcher event =
-                    new OptionalEventDispatcher(id + "ItemClicked", 1);
-
-            adapterView.setOnItemClickListener(
-                    new AdapterView.OnItemClickListener() {
-                public void onItemClick(AdapterView<?> parent,
-                        View view, int position, long id)
-                {
-                    Object item = parent.getAdapter().getItem(position);
-                    event.dispatch(parent.getContext(), item, position);
-                }
-            });
-        }
-    }
-
-
-    // ----------------------------------------------------------
-    /**
-     * This method implements the following binding rule: for each AbsSpinner,
-     * attach an OnItemSelectedListener to it that calls the context method
-     * "${id}ItemSelected", where "${id}" is the string name of the view's
-     * identifier.
-     *
-     * @param view the view
-     * @param attrs the attribute set
-     */
-    private static void bindOnItemSelected(final View view, AttributeSet attrs)
-    {
-        if (view instanceof AbsSpinner)
-        {
-            AbsSpinner adapterView = (AbsSpinner) view;
-
-            final String id = getIdName(view.getContext(), view.getId());
-
-            if (id != null)
-            {
-                final OptionalEventDispatcher itemEvent =
-                        new OptionalEventDispatcher(id + "ItemSelected", 1);
-                final EventDispatcher nothingEvent =
-                        new EventDispatcher(id + "NothingSelected");
-
-                adapterView.setOnItemSelectedListener(
-                        new AdapterView.OnItemSelectedListener() {
-                    public void onItemSelected(AdapterView<?> parent,
-                            View view, int position, long id)
-                    {
-                        Object item = parent.getAdapter().getItem(position);
-                        itemEvent.dispatch(
-                                parent.getContext(), item, position);
-                    }
-
-                    @Override
-                    public void onNothingSelected(AdapterView<?> parent)
-                    {
-                        nothingEvent.dispatch(parent.getContext());
-                    }
-                });
-            }
-        }
-    }
-
-
-    // ----------------------------------------------------------
-    /**
-     * This method implements the following binding rule: for each EditText
-     * view, attach an OnEditorActionListener to it that calls the context
-     * method "${id}EditingDone", where "${id}" is the string name of the
-     * view's identifier.
-     *
-     * @param view the view
-     * @param attrs the attribute set
-     */
-    private static void bindOnEditingDone(final View view, AttributeSet attrs)
-    {
-        if (view instanceof EditText)
-        {
-            EditText editText = (EditText) view;
-            editText.setOnEditorActionListener(editorActionListener);
+            ((Binder<View>) binder).bind(receiver, view, attrs);
         }
     }
 
@@ -236,12 +103,284 @@ public class EventBinder
     }
 
 
-    //~ Private listeners .....................................................
+    //~ Nested classes and interfaces .........................................
 
     // ----------------------------------------------------------
-    private static final TextView.OnEditorActionListener editorActionListener =
-            new TextView.OnEditorActionListener()
+    /**
+     * An interface that represents how an event should be bound to a widget of
+     * a particular type.
+     *
+     * Binders are added to the binder map such that only the binder for the
+     * most specific subclass of a widget that has a binder will be called. If
+     * the binder wants superclass bindings to be added as well, it must
+     * explicitly chain a call to that binder.
+     *
+     * @param <ViewType> the actual view type
+     */
+    private static interface Binder<ViewType>
     {
+        // ----------------------------------------------------------
+        /**
+         * Binds a listener for the event to the specified receiver.
+         *
+         * @param receiver the object that will receive the event notification
+         * @param view the view sending the event
+         * @param attrs the attributes set in the layout XML (if any)
+         */
+        public void bind(Object receiver, ViewType view, AttributeSet attrs);
+    }
+
+
+    // ----------------------------------------------------------
+    /**
+     * Implements the following binding rule: if a view is clickable, and it
+     * does not already have a method bound to the onClick attribute, then
+     * connect it to the context method "${id}Clicked", where "${id}" is the
+     * string name of the view's identifier.
+     */
+    private static Binder<View> ViewBinder = new Binder<View>() {
+        @Override
+        public void bind(final Object receiver, View view, AttributeSet attrs)
+        {
+            if (!AdapterView.class.isAssignableFrom(view.getClass())
+                    && view.isClickable()
+                    && (attrs == null ||
+                        attrs.getAttributeValue(ANDROID_NS, "onClick") == null))
+            {
+                final String id = getIdName(view.getContext(), view.getId());
+
+                if (id != null)
+                {
+                    final OptionalEventDispatcher event =
+                            new OptionalEventDispatcher(id + "Clicked", 0);
+
+                    try
+                    {
+                        view.setOnClickListener(new View.OnClickListener() {
+                            public void onClick(View v)
+                            {
+                                event.dispatch(receiver, v);
+                            }
+                        });
+                    }
+                    catch (Exception e)
+                    {
+                        // Do nothing. This try/catch was placed here because
+                        // it was discovered that setOnClickListener on an
+                        // AdapterView throws an exception (Barbara Liskov
+                        // would be furious) with a message directing you to
+                        // use setOnItemClickListener instead. For
+                        // future-proofing, we want to catch any such possible
+                        // exceptions and log them so that we can place
+                        // appropriate checks at the front of this method.
+
+                        Log.d("EventBinder", e.getMessage());
+                    }
+                }
+            }
+        }
+    };
+
+
+    // ----------------------------------------------------------
+    /**
+     * Implements the following binding rule: for each AbsListView,
+     * attach an OnItemClickListener to it that calls the context method
+     * "${id}ItemClicked", where "${id}" is the string name of the view's
+     * identifier.
+     */
+    private static Binder<AbsListView> AbsListViewBinder =
+            new Binder<AbsListView>() {
+        @Override
+        public void bind(
+                final Object receiver, AbsListView view, AttributeSet attrs)
+        {
+            // Fall back to "listView" as a default handler prefix if the
+            // list doesn't have its own ID -- this supports the
+            // automatically created ListView on a ListScreen.
+
+            String resourceId = getIdName(view.getContext(), view.getId());
+            final String id = (resourceId != null)
+                    ? resourceId : "listView";
+
+            final OptionalEventDispatcher event =
+                    new OptionalEventDispatcher(id + "ItemClicked", 1);
+
+            view.setOnItemClickListener(
+                    new AdapterView.OnItemClickListener() {
+                public void onItemClick(AdapterView<?> parent,
+                        View view, int position, long id)
+                {
+                    Object item = parent.getAdapter().getItem(position);
+                    event.dispatch(receiver, item, position);
+                }
+            });
+        }
+    };
+
+
+    // ----------------------------------------------------------
+    /**
+     * Implements the following binding rule: for each AbsSpinner,
+     * attach an OnItemSelectedListener to it that calls the context method
+     * "${id}ItemSelected", where "${id}" is the string name of the view's
+     * identifier.
+     */
+    private static Binder<AbsSpinner> AbsSpinnerBinder =
+            new Binder<AbsSpinner>() {
+        @Override
+        public void bind(
+                final Object receiver, AbsSpinner view, AttributeSet attrs)
+        {
+            String id = getIdName(view.getContext(), view.getId());
+
+            if (id != null)
+            {
+                final OptionalEventDispatcher itemEvent =
+                        new OptionalEventDispatcher(id + "ItemSelected", 1);
+                final EventDispatcher nothingEvent =
+                        new EventDispatcher(id + "NothingSelected");
+
+                view.setOnItemSelectedListener(
+                        new AdapterView.OnItemSelectedListener() {
+                    public void onItemSelected(AdapterView<?> parent,
+                            View view, int position, long id)
+                    {
+                        Object item = parent.getAdapter().getItem(position);
+                        itemEvent.dispatch(receiver, item, position);
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent)
+                    {
+                        nothingEvent.dispatch(receiver);
+                    }
+                });
+            }
+        }
+    };
+
+
+    // ----------------------------------------------------------
+    /**
+     * Implements the following binding rule: for each EditText
+     * view, attach an OnEditorActionListener to it that calls the context
+     * method "${id}EditingDone", where "${id}" is the string name of the
+     * view's identifier.
+     */
+    private static Binder<EditText> EditTextBinder = new Binder<EditText>() {
+        @Override
+        public void bind(
+                final Object receiver, EditText view, AttributeSet attrs)
+        {
+            EditText editText = (EditText) view;
+            editText.setOnEditorActionListener(
+                    new EditorActionListener(receiver));
+        }
+    };
+
+
+    // ----------------------------------------------------------
+    /**
+     * Implements the following binding rule: for each SeekBar,
+     * attach an OnSeekBarChangedListener to it that calls the context method
+     * "${id}Changed", where "${id}" is the string name of the view's
+     * identifier.
+     */
+    private static Binder<SeekBar> SeekBarBinder = new Binder<SeekBar>() {
+        @Override
+        public void bind(
+                final Object receiver, SeekBar view, AttributeSet attrs)
+        {
+            String id = getIdName(view.getContext(), view.getId());
+
+            if (id != null)
+            {
+                final OptionalEventDispatcher changedEvent =
+                        new OptionalEventDispatcher(
+                                id + "ProgressChanged", 0);
+                final OptionalEventDispatcher startedEvent =
+                        new OptionalEventDispatcher(
+                                id + "TrackingStarted", 0);
+                final OptionalEventDispatcher stoppedEvent =
+                        new OptionalEventDispatcher(
+                                id + "TrackingStopped", 0);
+
+                view.setOnSeekBarChangeListener(
+                        new SeekBar.OnSeekBarChangeListener() {
+                            public void onProgressChanged(SeekBar seekBar,
+                                    int progress, boolean fromUser)
+                            {
+                                changedEvent.dispatch(receiver, seekBar,
+                                        progress, fromUser);
+                            }
+
+                            public void onStartTrackingTouch(SeekBar seekBar)
+                            {
+                                startedEvent.dispatch(receiver, seekBar,
+                                        seekBar.getProgress());
+                            }
+
+                            public void onStopTrackingTouch(SeekBar seekBar)
+                            {
+                                stoppedEvent.dispatch(receiver, seekBar,
+                                        seekBar.getProgress());
+                            }
+                });
+            }
+        }
+    };
+
+
+    // ----------------------------------------------------------
+    /**
+     * Implements the following binding rule: for each SeekBar,
+     * attach an OnSeekBarChangedListener to it that calls the context method
+     * "${id}Changed", where "${id}" is the string name of the view's
+     * identifier.
+     */
+    private static Binder<RatingBar> RatingBarBinder =
+            new Binder<RatingBar>() {
+        @Override
+        public void bind(
+                final Object receiver, RatingBar view, AttributeSet attrs)
+        {
+            String id = getIdName(view.getContext(), view.getId());
+
+            if (id != null)
+            {
+                final OptionalEventDispatcher changedEvent =
+                        new OptionalEventDispatcher(
+                                id + "RatingChanged", 0);
+
+                view.setOnRatingBarChangeListener(
+                        new RatingBar.OnRatingBarChangeListener() {
+                            public void onRatingChanged(RatingBar ratingBar,
+                                    float rating, boolean fromUser)
+                            {
+                                changedEvent.dispatch(receiver, ratingBar,
+                                        rating, fromUser);
+                            }
+                });
+            }
+        }
+    };
+
+
+    // ----------------------------------------------------------
+    private static class EditorActionListener
+        implements TextView.OnEditorActionListener
+    {
+        private Object receiver;
+
+
+        // ----------------------------------------------------------
+        public EditorActionListener(Object receiver)
+        {
+            this.receiver = receiver;
+        }
+
+
         // ----------------------------------------------------------
         @Override
         public boolean onEditorAction(TextView v, int actionId,
@@ -318,8 +457,25 @@ public class EventBinder
             {
                 final OptionalEventDispatcher event =
                         new OptionalEventDispatcher(id + "EditingDone");
-                event.dispatch(v.getContext(), v);
+                event.dispatch(receiver, v);
             }
         }
     };
+
+
+    // ----------------------------------------------------------
+    /**
+     * Add the binders to the static map.
+     */
+    static
+    {
+        binders = new HashMap<Class<? extends View>, Binder<? extends View>>();
+
+        binders.put(View.class, ViewBinder);
+        binders.put(EditText.class, EditTextBinder);
+        binders.put(AbsListView.class, AbsListViewBinder);
+        binders.put(AbsSpinner.class, AbsSpinnerBinder);
+        binders.put(SeekBar.class, SeekBarBinder);
+        binders.put(RatingBar.class, RatingBarBinder);
+    }
 }

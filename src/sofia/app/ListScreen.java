@@ -92,7 +92,7 @@ public abstract class ListScreen<E> extends Screen
         {
             listView = createListView(this);
             listView.setClickable(true);
-            EventBinder.bindEvents(listView, null);
+            new EventBinder(this).bindEvents(listView, null);
             setContentView(listView);
 
             listView.requestFocus();
