@@ -1,12 +1,11 @@
 package sofia.internal.events;
 
 import java.util.List;
-
 import android.view.MotionEvent;
 
 //-------------------------------------------------------------------------
 /**
- * TODO document
+ * Reflective event dispatcher that dispatches and transforms motion events.
  *
  * @author  Tony Allevato
  * @version 2012.10.24
@@ -21,6 +20,11 @@ public class MotionEventDispatcher extends EventDispatcher
     //~ Constructors ..........................................................
 
     // ----------------------------------------------------------
+    /**
+     * Creates a new event dispatcher with the specified method name.
+     *
+     * @param method the name of the method that this dispatcher will call
+     */
     public MotionEventDispatcher(String method)
     {
         super(method);
@@ -47,6 +51,8 @@ public class MotionEventDispatcher extends EventDispatcher
     /**
      * Transforms an event with signature (MouseEvent event) to one with
      * signature (float x, float y).
+     *
+     * @return transformed motion event with (x, y) signature
      */
     protected MethodTransformer getXYTransformer()
     {
