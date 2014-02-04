@@ -49,6 +49,7 @@ public class TouchDispatcher
      */
     public static void dispatchTo(Object target, MotionEvent e)
     {
+        System.out.println("touch dispatched");
         // FIXME
         PointF location = null;
         if (e != null)
@@ -77,19 +78,13 @@ public class TouchDispatcher
         if (action == MotionEvent.ACTION_UP)
         {
             onTap.dispatch(target, location);
-            //if (e.getClickCount() % 2 == 0)
-            {
-                onDoubleTap.dispatch(target, location);
-            }
-            onTouchUp.dispatch(target, location);
-        }
-        if (action == MotionEvent.ACTION_UP)
-        {
             onScreenTap.dispatch(target, location);
             //if (e.getClickCount() % 2 == 0)
-            {
+            //{
+                onDoubleTap.dispatch(target, location);
                 onScreenDoubleTap.dispatch(target, location);
-            }
+            //}
+            onTouchUp.dispatch(target, location);
             onScreenTouchUp.dispatch(target, location);
         }
     }
