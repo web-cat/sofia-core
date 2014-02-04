@@ -139,7 +139,7 @@ public class EventDispatcher
 
     // ----------------------------------------------------------
     /**
-     * TODO document
+     * Creates a transformer and places it in the associated cache.
      *
      * @param receiver
      * @param argTypes
