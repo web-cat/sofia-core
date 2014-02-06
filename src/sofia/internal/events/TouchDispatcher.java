@@ -45,20 +45,21 @@ public class TouchDispatcher
      * Determines which of the dispatchers to dispatch the event to.
      *
      * @param target object that is associated with the key event
+     * @param cellSize number of pixels each cell in the world is
      * @param e MotionEvent that is being checked
+     * @param action action of the corresponding motion event
      */
-    public static void dispatchTo(Object target, MotionEvent e)
+    public static void dispatchTo(Object target, int cellSize, MotionEvent e,
+        int action)
     {
-        System.out.println("touch dispatched");
-        // FIXME
         PointF location = null;
         if (e != null)
         {
-            // may need to fix later
-            location = new PointF(e.getRawX() / 0.5f, e.getRawY() / 0.5f);
+            location = new PointF(e.getRawX() / (cellSize - 0.5f),
+                e.getRawY() / (cellSize - 0.5f));
         }
 
-        int action = e.getAction() & MotionEvent.ACTION_MASK;
+        action &= MotionEvent.ACTION_MASK;
         // Press
         if (action == MotionEvent.ACTION_DOWN)
         {
