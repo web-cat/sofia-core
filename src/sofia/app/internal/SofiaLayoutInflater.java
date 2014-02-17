@@ -1,18 +1,46 @@
-package sofia.app.internal;
+/*
+ * Copyright (C) 2011 Virginia Tech Department of Computer Science
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import java.lang.reflect.Field;
+package sofia.app.internal;
 
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 
+import java.lang.reflect.Field;
+
 //-------------------------------------------------------------------------
 /**
- * TODO document
+ * The layout inflater used by Sofia {@link Screen} classes. It provides the
+ * following enhancements:
+ * <ul>
+ * <li>Views specified in XML with simple names (e.g., {@code ListView} instead
+ * of {@code android.widget.ListView}) will be inflated with a Sofia-enhanced
+ * version from the {@code sofia.view} or {@code sofia.widget} packages if it
+ * exists, falling back to the {@code android} packages if it does not.</li>
+ * <li>Private fields whose names match the ID of a view and have compatible
+ * types will be automatically assigned references to those widgets, as if
+ * {@code findViewById} had been called.</li>
+ * <li>View/widget events (such as click, item-selected, etc.) will be
+ * automatically bound to methods in the {@link Screen} class if they have
+ * matching names and types.</li>
+ * </ul>
  *
- * @author  Tony Allevato
- * @version 2012.11.01
+ * @author Tony Allevato
  */
 public class SofiaLayoutInflater extends LayoutInflater
 {

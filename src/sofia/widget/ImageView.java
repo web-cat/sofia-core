@@ -1,13 +1,20 @@
+/*
+ * Copyright (C) 2011 Virginia Tech Department of Computer Science
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package sofia.widget;
-
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -19,13 +26,21 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.AttributeSet;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
+
 //-------------------------------------------------------------------------
 /**
  * A subclass of {@link android.widget.ImageView} that can load images from
  * HTTP/HTTPS URIs as well as resource and content resolver URIs.
  *
- * @author  Tony Allevato
- * @version 2013.03.18
+ * @author Tony Allevato
  */
 public class ImageView extends android.widget.ImageView
 {

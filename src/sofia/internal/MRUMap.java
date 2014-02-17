@@ -1,23 +1,18 @@
-/*==========================================================================*\
- |  $Id: MRUMap.java,v 1.3 2010/02/23 17:06:36 stedwar2 Exp $
- |*-------------------------------------------------------------------------*|
- |  Copyright (C) 2009-2010 Virginia Tech
- |
- |  This file is part of the Student-Library.
- |
- |  The Student-Library is free software; you can redistribute it and/or
- |  modify it under the terms of the GNU Lesser General Public License as
- |  published by the Free Software Foundation; either version 3 of the
- |  License, or (at your option) any later version.
- |
- |  The Student-Library is distributed in the hope that it will be useful,
- |  but WITHOUT ANY WARRANTY; without even the implied warranty of
- |  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- |  GNU Lesser General Public License for more details.
- |
- |  You should have received a copy of the GNU Lesser General Public License
- |  along with the Student-Library; if not, see <http://www.gnu.org/licenses/>.
-\*==========================================================================*/
+/*
+ * Copyright (C) 2011 Virginia Tech Department of Computer Science
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package sofia.internal;
 
@@ -31,20 +26,18 @@ import java.util.Set;
 
 //-------------------------------------------------------------------------
 /**
- *  A caching map used internally by various student.* classes.  This map
- *  records the time that each value is "set", along with a maximum
- *  permissible age.  It automatically clears entries older than the
- *  allowable maximum.  It also supports a capacity limit, and automatically
- *  removes the least-recently-used entries to make room for new entries
- *  if the cache is already at capacity.  It uses soft references, so
- *  that memory can be reclaimed by the garbage collector as needed.
+ * A caching map used internally by various student.* classes.  This map
+ * records the time that each value is "set", along with a maximum
+ * permissible age.  It automatically clears entries older than the
+ * allowable maximum.  It also supports a capacity limit, and automatically
+ * removes the least-recently-used entries to make room for new entries
+ * if the cache is already at capacity.  It uses soft references, so
+ * that memory can be reclaimed by the garbage collector as needed.
  *
- *  @param <K> The type for keys
- *  @param <V> The type for values
+ * @param <K> The type for keys
+ * @param <V> The type for values
  *
- *  @author  Stephen Edwards
- *  @author Last changed by $Author: stedwar2 $
- *  @version $Revision: 1.3 $, $Date: 2010/02/23 17:06:36 $
+ * @author Stephen Edwards
  */
 public class MRUMap<K, V>
     implements Map<K, V>

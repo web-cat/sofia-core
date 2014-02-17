@@ -1,9 +1,20 @@
-package sofia.app.internal;
+/*
+ * Copyright (C) 2011 Virginia Tech Department of Computer Science
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import java.lang.ref.WeakReference;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.WeakHashMap;
+package sofia.app.internal;
 
 import sofia.app.ActivityStarter;
 import sofia.app.OptionsMenu;
@@ -12,6 +23,7 @@ import sofia.app.ScreenLayout;
 import sofia.internal.ModalTask;
 import sofia.internal.events.EventDispatcher;
 import sofia.internal.events.OptionalEventDispatcher;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -23,6 +35,11 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.ScrollView;
+
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.WeakHashMap;
 
 // -------------------------------------------------------------------------
 /**
@@ -37,8 +54,7 @@ import android.widget.ScrollView;
  * must extend {@code MapActivity} instead.
  * </p>
  *
- * @author  Tony Allevato
- * @version 2012.11.13
+ * @author Tony Allevato
  */
 public class ScreenMixin
 {
