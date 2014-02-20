@@ -42,6 +42,28 @@ public class TouchDispatcher
     }
 
     /**
+     * Returns true if the class of the target has any of the touch listener
+     * methods, returns false otherwise.
+     *
+     * @param target object to test if it has any listeners
+     * @return true if target has any touch listeners
+     */
+    public static boolean hasTouchListeners(Object target)
+    {
+        PointF location = new PointF();
+        return onTouchDown.isSupportedBy(target, location)
+            || onScreenTouchDown.isSupportedBy(target, location)
+            || onTouchMove.isSupportedBy(target, location)
+            || onScreenTouchMove.isSupportedBy(target, location)
+            || onTouchUp.isSupportedBy(target, location)
+            || onScreenTouchUp.isSupportedBy(target, location)
+            || onTap.isSupportedBy(target, location)
+            || onScreenTap.isSupportedBy(target, location)
+            || onDoubleTap.isSupportedBy(target, location)
+            || onScreenDoubleTap.isSupportedBy(target, location);
+    }
+
+    /**
      * Determines which of the dispatchers to dispatch the event to.
      *
      * @param target object that is associated with the key event
@@ -55,38 +77,42 @@ public class TouchDispatcher
         PointF location = null;
         if (e != null)
         {
-            location = new PointF(e.getRawX() / (cellSize - 0.5f),
-                e.getRawY() / (cellSize - 0.5f));
+            location = new PointF((int) ((e.getX() - 0.5) / cellSize),
+                (int) ((e.getY() - 0.5) / cellSize));
         }
 
-        action &= MotionEvent.ACTION_MASK;
+        // using -1 to indicate double-taps, probably need to change later
+        if (action != -1)
+        {
+            action &= MotionEvent.ACTION_MASK;
+        }
+
         // Press
         if (action == MotionEvent.ACTION_DOWN)
         {
             onTouchDown.dispatch(target, location);
             onScreenTouchDown.dispatch(target, location);
         }
-
         // Move
-        if (action == MotionEvent.ACTION_MOVE)
+        else if (action == MotionEvent.ACTION_MOVE)
         {
             onTouchMove.dispatch(target, location);
             onScreenTouchMove.dispatch(target, location);
         }
-
-        // Need to add support for double-tapping
         // Tap
-        if (action == MotionEvent.ACTION_UP)
+        else if (action == MotionEvent.ACTION_UP)
         {
             onTap.dispatch(target, location);
             onScreenTap.dispatch(target, location);
-            //if (e.getClickCount() % 2 == 0)
-            //{
-                onDoubleTap.dispatch(target, location);
-                onScreenDoubleTap.dispatch(target, location);
-            //}
+
             onTouchUp.dispatch(target, location);
             onScreenTouchUp.dispatch(target, location);
+        }
+        // Double Tap
+        else if (action == -1)
+        {
+            onDoubleTap.dispatch(target, location);
+            onScreenDoubleTap.dispatch(target, location);
         }
     }
 
