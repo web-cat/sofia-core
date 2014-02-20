@@ -1,5 +1,6 @@
 package sofia.internal.events;
 
+import java.util.HashMap;
 import android.view.MotionEvent;
 import java.util.List;
 import android.graphics.Point;
@@ -36,6 +37,9 @@ public class TouchDispatcher
     private static final EventDispatcher onScreenDoubleTap =
         new PointDispatcher("onScreenDoubleTap");
 
+    private static HashMap<String, Boolean> cachedDispatchableClasses =
+        new HashMap<String, Boolean>();
+
     private TouchDispatcher()
     {
         // Nothing to do
@@ -50,8 +54,15 @@ public class TouchDispatcher
      */
     public static boolean hasTouchListeners(Object target)
     {
+        String key = target.getClass().toString();
+        if (cachedDispatchableClasses.containsKey(key))
+        {
+            return cachedDispatchableClasses.get(key);
+        }
+
         PointF location = new PointF();
-        return onTouchDown.isSupportedBy(target, location)
+        boolean hasDispatchableMethods =
+               onTouchDown.isSupportedBy(target, location)
             || onScreenTouchDown.isSupportedBy(target, location)
             || onTouchMove.isSupportedBy(target, location)
             || onScreenTouchMove.isSupportedBy(target, location)
@@ -61,6 +72,9 @@ public class TouchDispatcher
             || onScreenTap.isSupportedBy(target, location)
             || onDoubleTap.isSupportedBy(target, location)
             || onScreenDoubleTap.isSupportedBy(target, location);
+
+        cachedDispatchableClasses.put(key, hasDispatchableMethods);
+        return hasDispatchableMethods;
     }
 
     /**
