@@ -81,20 +81,12 @@ public class TouchDispatcher
      * Determines which of the dispatchers to dispatch the event to.
      *
      * @param target object that is associated with the key event
-     * @param cellSize number of pixels each cell in the world is
      * @param e MotionEvent that is being checked
      * @param action action of the corresponding motion event
+     * @param location (x, y) cell coordinate pair where the event occurred
      */
-    public static void dispatchTo(Object target, int cellSize, MotionEvent e,
-        int action)
+    public static void dispatchTo(Object target, MotionEvent e, int action, PointF location)
     {
-        PointF location = null;
-        if (e != null)
-        {
-            location = new PointF((int) ((e.getX() - 0.5) / cellSize),
-                (int) ((e.getY() - 0.5) / cellSize));
-        }
-
         // using -1 to indicate double-taps, probably need to change later
         if (action != -1)
         {
